@@ -1,0 +1,62 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mfranklin.fridgeapp.ShoppingListFragment">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/shopping_list_header"
+            android:text="Shopping List"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:typeface="serif"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/image_border"
+            android:padding="8dp"/>
+        <Button
+            android:id="@+id/shopping_list_new_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/borderlessButtonStyle"
+            android:text="Add Item(s)"
+            android:layout_below="@+id/shopping_list_header"/>
+        <ListView
+            android:id="@+id/shopping_list_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/shopping_list_new_item"/>
+        <TableLayout
+            android:id="@+id/list_destinations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_alignParentBottom="true"
+            android:stretchColumns="*">
+            <TableRow>
+                <ImageView
+                    android:id="@+id/shopping_list_dest_fridge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:src="@mipmap/ic_launcher"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <ImageView
+                    android:id="@+id/shopping_list_dest_freezer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:src="@mipmap/ic_freezer"
+                    />
+            </TableRow>
+        </TableLayout>
+    </RelativeLayout>
+
+</FrameLayout>
