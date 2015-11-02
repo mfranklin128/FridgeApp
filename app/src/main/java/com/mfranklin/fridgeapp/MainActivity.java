@@ -8,7 +8,8 @@ import android.view.MenuItem;
 public class MainActivity extends Activity
         implements
         ShoppingListFragment.OnFragmentInteractionListener,
-        NewItemFragment.OnFragmentInteractionListener {
+        NewItemFragment.OnFragmentInteractionListener,
+        StashFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class MainActivity extends Activity
             MyFragmentManager.displayNewItemFragment(this, false);
         }
         else if (id == R.id.action_fridge) {
-            //MyFragmentManager.displayStashFragment(this, false);
+            MyFragmentManager.displayStashFragment(this, false);
         }
 
         return super.onOptionsItemSelected(item);
@@ -56,4 +57,7 @@ public class MainActivity extends Activity
 
     }
 
+    public void onStashFragmentInteraction() {
+
+    }
 }

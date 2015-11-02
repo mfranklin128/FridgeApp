@@ -38,13 +38,15 @@ public class FoodItem {
 
     public FoodItem(Cursor c, SQLiteDatabase db) {
         this.db = db;
-
-        int locationIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_LOCATION);
-        int expDateIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_EXP_DATE);
-        int idIndex = c.getColumnIndex(FoodItemEntry._ID);
-        int foodTypeNameIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_NAME);
-        int foodTypeCategoryIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_CATEGORY);
-        int foodTypeIdIndex = c.getColumnIndex(FoodTypeEntry._ID);
+        for (String columnName : c.getColumnNames()) {
+            Log.d("FoodItem", "column name - " + columnName);
+        }
+        int locationIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem");
+        int expDateIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem");
+        int idIndex = c.getColumnIndex(FoodItemEntry._ID+ "fooditem");
+        int foodTypeNameIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_NAME + "foodtype");
+        int foodTypeCategoryIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype");
+        int foodTypeIdIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem");
 
         // We need a location, but a null expDate is permitted if the item is on the list
         location = c.getInt(locationIndex);
@@ -72,7 +74,9 @@ public class FoodItem {
         long result = -1;
         ContentValues vals = new ContentValues();
         vals.put(FoodItemEntry.COLUMN_NAME_LOCATION, location);
-        vals.put(FoodItemEntry.COLUMN_NAME_EXP_DATE, Constants.expDateFormat.format(expDate));
+        if (expDate != null) {
+            vals.put(FoodItemEntry.COLUMN_NAME_EXP_DATE, Constants.expDateFormat.format(expDate));
+        }
 
         long typeId = type.save();
         vals.put(FoodItemEntry.COLUMN_NAME_FOOD_TYPE, typeId);
@@ -81,10 +85,16 @@ public class FoodItem {
             result = db.insert(FoodItemEntry.TABLE_NAME, null, vals);
         }
         else {
+            Log.d("FoodItem", "doing update on " + id);
             result = db.update(FoodItemEntry.TABLE_NAME, vals, FoodItemEntry._ID + "=" + id, null);
         }
         Log.d("FoodItem", "saving - " + result);
         return result;
+    }
+
+    public void delete() {
+        int deleted = db.delete(FoodItemEntry.TABLE_NAME, FoodItemEntry._ID + "=?", new String[] {""+id});
+        Log.d("FoodItem", "num deleted - " + deleted);
     }
 
     public static FoodItem[] getShoppingListItems(SQLiteDatabase db) {
@@ -102,11 +112,63 @@ public class FoodItem {
 
         String sortOrder = FoodTypeEntry.COLUMN_NAME_NAME + " ASC";
         String query =
-                "SELECT * FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
+                "SELECT " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" +
+                        " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_LIST;
+
+        Cursor c = db.rawQuery(query, new String[]{});
+        if (!c.moveToFirst()) {
+            return null; // no results
+        }
+        else {
+            toReturn = new FoodItem[c.getCount()];
+            int i = 0;
+            do {
+                toReturn[i] = new FoodItem(c, db);
+                i++;
+            }
+            while (!c.isLast() && c.moveToNext());
+            c.close();
+            return toReturn;
+        }
+    }
+
+    public static FoodItem[] getStashItems(SQLiteDatabase db) {
+        FoodItem[] toReturn;
+        String[] projection = {
+                FoodItemEntry._ID,
+                FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_LOCATION,
+                FoodItemEntry.COLUMN_NAME_EXP_DATE,
+                FoodTypeEntry._ID,
+                FoodTypeEntry.COLUMN_NAME_NAME,
+                FoodTypeEntry.COLUMN_NAME_CATEGORY
+        };
+
+        String query =
+                "SELECT " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" +
+                        " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
+                        FoodTypeEntry.TABLE_NAME + " ON " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FRIDGE;
 
         Cursor c = db.rawQuery(query, new String[]{});
         if (!c.moveToFirst()) {

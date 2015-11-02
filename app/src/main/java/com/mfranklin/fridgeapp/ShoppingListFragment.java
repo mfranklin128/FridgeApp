@@ -89,10 +89,10 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
 
         // Set up drag listeners for the destinations
         ImageView destFridge = (ImageView) toReturn.findViewById(R.id.shopping_list_dest_fridge);
-        destFridge.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FRIDGE));
+        destFridge.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FRIDGE, shoppingListAdapter));
 
         ImageView destFreezer = (ImageView) toReturn.findViewById(R.id.shopping_list_dest_freezer);
-        destFreezer.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FREEZER));
+        destFreezer.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FREEZER, shoppingListAdapter));
 
         return toReturn;
     }
@@ -190,6 +190,16 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
 
             return rowView;
         }
+
+        @Override
+        public void remove(FoodItem item) {
+            foodItemList.remove(item);
+            notifyDataSetChanged();
+        }
+
+        public int getCount() {
+            return foodItemList.size();
+        }
     }
 
     private class ShoppingListItemDragListener implements View.OnDragListener {
@@ -212,9 +222,11 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
 
     private class ShoppingListDestinationDragListener implements View.OnDragListener {
         private final int type;
+        private final ShoppingListAdapter adapter;
 
-        public ShoppingListDestinationDragListener(int type) {
+        public ShoppingListDestinationDragListener(int type, ShoppingListAdapter slAdapter) {
             this.type = type;
+            adapter = slAdapter;
         }
 
         public boolean onDrag(View v, DragEvent event) {
@@ -232,12 +244,13 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
                     dest.invalidate();
                     return true;
                 case DragEvent.ACTION_DROP:
-                    FoodType type = (FoodType) event.getLocalState();
+                    FoodItem item = (FoodItem) event.getLocalState();
                     int location = Constants.LOC_FRIDGE;
                     if (this.type == Constants.SHOPPING_LIST_DEST_FRIDGE) location = Constants.LOC_FRIDGE;
                     else if (this.type == Constants.SHOPPING_LIST_DEST_FREEZER) location = Constants.LOC_FREEZER;
-                    FoodItem newItem = new FoodItem(type, Calendar.getInstance().getTime(), location, -1, type.db);
-                    newItem.save();
+                    item.location = location;
+                    item.save();
+                    adapter.remove(item);
                     dest = (ImageView) v;
                     dest.setBackgroundColor(Color.WHITE);
                     dest.invalidate();

@@ -52,4 +52,25 @@ public class MyFragmentManager {
         ft.commit();
         return true;
     }
+
+    public static boolean displayStashFragment(Activity a, boolean addToBack) {
+        FragmentManager fm  = a.getFragmentManager();
+
+        if (fm == null) return false;
+
+        Fragment placeholder = fm.findFragmentById(R.id.fragment_container);
+        FragmentTransaction ft = fm.beginTransaction();
+
+        if (placeholder != null) {
+            ft.replace(R.id.fragment_container, new StashFragment());
+        }
+        else {
+            ft.add(R.id.fragment_container, new StashFragment());
+        }
+        if (addToBack) {
+            ft.addToBackStack("stash_fragment");
+        }
+        ft.commit();
+        return true;
+    }
 }

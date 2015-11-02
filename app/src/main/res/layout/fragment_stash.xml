@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*"
+            android:padding="8dp"
+            android:layout_alignParentTop="true"
+            android:id="@+id/stash_tabs">
+            <TableRow>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fridge"
+                    android:id="@+id/stash_tab_fridge"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Freezer"
+                    android:id="@+id/stash_tab_freezer"
+                    android:gravity="center"
+                    android:textSize="20sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pantry"
+                    android:id="@+id/stash_tab_pantry"
+                    android:gravity="center"
+                    android:textSize="20sp" />
+            </TableRow>
+        </TableLayout>
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/stash_items"
+            android:layout_below="@+id/stash_tabs">
+        </ListView>
+    </RelativeLayout>
+</FrameLayout>
