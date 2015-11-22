@@ -12,29 +12,37 @@
             android:padding="8dp"
             android:layout_alignParentTop="true"
             android:id="@+id/stash_tabs">
-            <TableRow>
-                <TextView
+            <TableRow
+                android:id="@+id/stash_tab_row"
+                android:clickable="true">
+                <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Fridge"
                     android:id="@+id/stash_tab_fridge"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:textStyle="bold"/>
-                <TextView
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    style="?android:attr/borderlessButtonStyle"/>
+                <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Freezer"
                     android:id="@+id/stash_tab_freezer"
                     android:gravity="center"
-                    android:textSize="20sp"/>
-                <TextView
+                    android:textSize="20sp"
+                    android:clickable="true"
+                    style="?android:attr/borderlessButtonStyle"/>
+                <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pantry"
                     android:id="@+id/stash_tab_pantry"
                     android:gravity="center"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:clickable="true"
+                    style="?android:attr/borderlessButtonStyle"/>
             </TableRow>
         </TableLayout>
         <ListView

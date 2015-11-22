@@ -19,7 +19,7 @@
     <ImageView
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:src="@drawable/shopping_cart_icon"
-        android:id="@+id/shopping_cart_icon"
+        android:src="@mipmap/ic_add"
+        android:id="@+id/add_icon"
         android:visibility="invisible"/>
 </LinearLayout>

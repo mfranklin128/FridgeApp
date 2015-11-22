@@ -11,6 +11,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Picture;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
@@ -87,12 +88,51 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
         shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems);
         shoppingList.setAdapter(shoppingListAdapter);
 
-        // Set up drag listeners for the destinations
-        ImageView destFridge = (ImageView) toReturn.findViewById(R.id.shopping_list_dest_fridge);
-        destFridge.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FRIDGE, shoppingListAdapter));
+        // Set listeners for destinations
+        View listDest = toReturn.findViewById(R.id.dest_list);
+        listDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_LIST, shoppingListAdapter));
+        ImageView listDestIcon = (ImageView) listDest.findViewById(R.id.dest_list_icon);
+        listDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayShoppingListFragment(getActivity(), false);
+            }
+        });
 
-        ImageView destFreezer = (ImageView) toReturn.findViewById(R.id.shopping_list_dest_freezer);
-        destFreezer.setOnDragListener(new ShoppingListDestinationDragListener(Constants.SHOPPING_LIST_DEST_FREEZER, shoppingListAdapter));
+        View fridgeDest = toReturn.findViewById(R.id.dest_fridge);
+        fridgeDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_FRIDGE, shoppingListAdapter));
+        ImageView fridgeDestIcon = (ImageView) fridgeDest.findViewById(R.id.dest_fridge_icon);
+        fridgeDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
+
+        View freezerDest = toReturn.findViewById(R.id.dest_freezer);
+        freezerDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_FREEZER, shoppingListAdapter));
+        ImageView freezerDestIcon = (ImageView) freezerDest.findViewById(R.id.dest_freezer_icon);
+        freezerDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
+
+        View pantryDest = toReturn.findViewById(R.id.dest_pantry);
+        pantryDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_PANTRY, shoppingListAdapter));
+        ImageView pantryDestIcon = (ImageView) pantryDest.findViewById(R.id.dest_pantry_icon);
+        pantryDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
+
+        // Bold the text for List
+        TextView label = (TextView) listDest.findViewById(R.id.dest_list_text);
+        label.setTypeface(null, Typeface.BOLD);
+        listDest.setBackgroundColor(Color.argb(0x80, 0x80, 0x80, 0x80));
 
         return toReturn;
     }
@@ -140,7 +180,7 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
         private ArrayList<FoodItem> foodItemList;
 
         public ShoppingListAdapter(Context context, FoodItem[] foodItems) {
-            super(context, -1, foodItems);
+            super(context, -1, new ArrayList<FoodItem>(Arrays.asList(foodItems)));
             this.ctx = context;
             foodItemList = new ArrayList<FoodItem>(Arrays.asList(foodItems));
         }
@@ -173,7 +213,7 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
                             new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN},
                             item);
 
-                    ImageView iv = (ImageView) view.findViewById(R.id.shopping_cart_icon);
+                    ImageView iv = (ImageView) view.findViewById(R.id.add_icon);
                     iv.startDrag(
                             dragData,
                             new View.DragShadowBuilder(iv),
@@ -191,10 +231,9 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
             return rowView;
         }
 
-        @Override
         public void remove(FoodItem item) {
+            super.remove(item);
             foodItemList.remove(item);
-            notifyDataSetChanged();
         }
 
         public int getCount() {
@@ -223,10 +262,17 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
     private class ShoppingListDestinationDragListener implements View.OnDragListener {
         private final int type;
         private final ShoppingListAdapter adapter;
+        private int originalColor;
 
         public ShoppingListDestinationDragListener(int type, ShoppingListAdapter slAdapter) {
             this.type = type;
             adapter = slAdapter;
+            if (this.type == Constants.DEST_LIST) {
+                originalColor = Color.argb(0x80, 0x80, 0x80, 0x80);
+            }
+            else {
+                originalColor = Color.WHITE;
+            }
         }
 
         public boolean onDrag(View v, DragEvent event) {
@@ -234,26 +280,37 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
                 case DragEvent.ACTION_DRAG_STARTED:
                     return true;
                 case DragEvent.ACTION_DRAG_ENTERED:
-                    ImageView dest = (ImageView) v;
+                    View dest = v;
                     dest.setBackgroundColor(Color.argb(0x80, 0xcc, 0xff, 0xcc));
                     dest.invalidate();
                     return true;
                 case DragEvent.ACTION_DRAG_EXITED:
-                    dest = (ImageView) v;
-                    dest.setBackgroundColor(Color.WHITE);
-                    dest.invalidate();
+                    v.setBackgroundColor(originalColor);
                     return true;
                 case DragEvent.ACTION_DROP:
                     FoodItem item = (FoodItem) event.getLocalState();
                     int location = Constants.LOC_FRIDGE;
-                    if (this.type == Constants.SHOPPING_LIST_DEST_FRIDGE) location = Constants.LOC_FRIDGE;
-                    else if (this.type == Constants.SHOPPING_LIST_DEST_FREEZER) location = Constants.LOC_FREEZER;
+                    switch (this.type) {
+                        case Constants.DEST_FRIDGE:
+                            location = Constants.LOC_FRIDGE;
+                            break;
+                        case Constants.DEST_FREEZER:
+                            location = Constants.LOC_FREEZER;
+                            break;
+                        case Constants.DEST_LIST:
+                            location = Constants.LOC_LIST;
+                            break;
+                        case Constants.DEST_PANTRY:
+                            location = Constants.LOC_PANTRY;
+                            break;
+                    }
                     item.location = location;
                     item.save();
-                    adapter.remove(item);
-                    dest = (ImageView) v;
-                    dest.setBackgroundColor(Color.WHITE);
-                    dest.invalidate();
+                    if (this.type != Constants.DEST_LIST) {
+                        adapter.remove(item);
+                        adapter.notifyDataSetChanged();
+                    }
+                    v.setBackgroundColor(originalColor);
                     return true;
             }
             return true;

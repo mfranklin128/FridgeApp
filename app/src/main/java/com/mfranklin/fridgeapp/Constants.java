@@ -17,14 +17,14 @@ public class Constants {
     public static final int LOC_FRIDGE = 0;
     public static final int LOC_FREEZER = 1;
     public static final int LOC_LIST = 2;
+    public static final int LOC_PANTRY = 3;
 
     public static final SimpleDateFormat expDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    public static final int NEW_ITEM_DEST_FRIDGE = 0;
-    public static final int NEW_ITEM_DEST_LIST = 1;
-
-    public static final int SHOPPING_LIST_DEST_FRIDGE = 0;
-    public static final int SHOPPING_LIST_DEST_FREEZER = 1;
+    public static final int DEST_FRIDGE = 0;
+    public static final int DEST_FREEZER = 1;
+    public static final int DEST_LIST = 2;
+    public static final int DEST_PANTRY = 3;
 
     public static final int VEGETABLE_GREEN = 0xA012AD2A;
     public static final int MEAT_RED = 0xA0D68A59;

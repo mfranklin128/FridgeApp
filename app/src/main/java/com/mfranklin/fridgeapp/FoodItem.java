@@ -168,7 +168,9 @@ public class FoodItem {
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FRIDGE;
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FRIDGE + " OR " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FREEZER + " OR " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_PANTRY;
 
         Cursor c = db.rawQuery(query, new String[]{});
         if (!c.moveToFirst()) {

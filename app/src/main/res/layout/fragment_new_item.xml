@@ -5,38 +5,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/new_item_search_text"
+            android:layout_above="@+id/new_item_fragment_container"/>
         <ListView
             android:id="@+id/new_item_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-            android:layout_alignParentTop="true"
-            android:layout_above="@+id/new_item_shopping_cart"/>
-        <TableLayout
-            android:id="@+id/new_item_shopping_cart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
+            android:layout_above="@+id/new_item_footer"
+            android:layout_below="@id/new_item_search_text"
+            />
+        <include layout="@layout/destination_footer"
+            android:id="@+id/new_item_footer"
             android:layout_alignParentBottom="true"
-            android:stretchColumns="*">
-            <TableRow>
-                <ImageView
-                    android:id="@+id/new_item_dest_list"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:src="@mipmap/ic_shopping_list"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <ImageView
-                    android:id="@+id/new_item_dest_fridge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:src="@mipmap/ic_launcher"
-                    />
-            </TableRow>
-        </TableLayout>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
 </FrameLayout>

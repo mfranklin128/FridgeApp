@@ -10,6 +10,8 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -17,9 +19,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -29,6 +35,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -79,17 +86,69 @@ public class NewItemFragment extends Fragment {
         FoodType[] foodTypes = FoodType.getAllFoodTypes(dbHelper.getWritableDatabase());
         if (foodTypes == null) foodTypes = new FoodType[0];
 
-        NewItemCategoryListAdapter categoryListAdapter = new NewItemCategoryListAdapter(foodTypes, getActivity());
+        final NewItemAdapter itemArrayAdapter = new NewItemAdapter(foodTypes, getActivity());
         ListView lv = (ListView) toReturn.findViewById(R.id.new_item_fragment_container);
-        lv.setAdapter(categoryListAdapter);
+        lv.setAdapter(itemArrayAdapter);
 
-        // Set listeners for List and Fridge destinations
-        ImageView listDest = (ImageView) toReturn.findViewById(R.id.new_item_dest_list);
-        listDest.setOnDragListener(new NewItemDestinationDragListener(Constants.NEW_ITEM_DEST_LIST));
+        // Set listeners for destinations
+        View listDest = toReturn.findViewById(R.id.dest_list);
+        listDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_LIST));
+        ImageView listDestIcon = (ImageView) listDest.findViewById(R.id.dest_list_icon);
+        listDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayShoppingListFragment(getActivity(), false);
+            }
+        });
 
-        ImageView fridgeDest = (ImageView) toReturn.findViewById(R.id.new_item_dest_fridge);
-        fridgeDest.setOnDragListener(new NewItemDestinationDragListener(Constants.NEW_ITEM_DEST_FRIDGE));
+        View fridgeDest = toReturn.findViewById(R.id.dest_fridge);
+        fridgeDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_FRIDGE));
+        ImageView fridgeDestIcon = (ImageView) fridgeDest.findViewById(R.id.dest_fridge_icon);
+        fridgeDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
 
+        View freezerDest = toReturn.findViewById(R.id.dest_freezer);
+        freezerDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_FREEZER));
+        ImageView freezerDestIcon = (ImageView) freezerDest.findViewById(R.id.dest_freezer_icon);
+        freezerDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
+
+        View pantryDest = toReturn.findViewById(R.id.dest_pantry);
+        pantryDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_PANTRY));
+        ImageView pantryDestIcon = (ImageView) pantryDest.findViewById(R.id.dest_pantry_icon);
+        pantryDestIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyFragmentManager.displayStashFragment(getActivity(), false);
+            }
+        });
+
+        // Set up filter edit text
+        EditText et = (EditText) toReturn.findViewById(R.id.new_item_search_text);
+        et.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                itemArrayAdapter.getFilter().filter(s);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
         return toReturn;
     }
 
@@ -116,160 +175,61 @@ public class NewItemFragment extends Fragment {
         public void onNewItemFragmentInteraction();
     }
 
-    private class NewItemCategoryListAdapter extends BaseAdapter {
-
-        private HashMap<String, ArrayList<FoodType>> categoryToTypes = new HashMap<String, ArrayList<FoodType>>();
-        private ArrayList<String> categoryOrder = new ArrayList<String>();
+    private class NewItemAdapter extends BaseAdapter implements Filterable {
+        private ArrayList<FoodType> foodTypes;
+        private ArrayList<FoodType> filteredFoodTypes;
         private Context ctx;
+        private FoodTypeFilter filter;
 
-        public NewItemCategoryListAdapter(FoodType[] foodTypes, Context ctx) {
+        public NewItemAdapter(FoodType[] foodTypes, Context context) {
             super();
-            this.ctx = ctx;
-            for (FoodType type : foodTypes) {
-                String category = type.category;
-                ArrayList<FoodType> types = categoryToTypes.get(category);
-                if (types == null) {
-                    types = new ArrayList<FoodType>();
-                }
-                types.add(type);
-                categoryToTypes.put(category, types);
-                if (!categoryOrder.contains(category)) categoryOrder.add(category);
-            }
+            this.ctx = context;
+            this.foodTypes = new ArrayList<FoodType>(Arrays.asList(foodTypes));
+            this.filteredFoodTypes = new ArrayList<FoodType>();
+            filter = new FoodTypeFilter();
+            filter.filter("");
         }
 
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public boolean hasStableIds() {
-            return true;
-        }
-
-        public boolean isEmpty() {
-            return (categoryOrder.size() == 0);
-        }
-
-        public int getCount() {
-            return categoryOrder.size();
-        }
-
-        public Object getItem(int position) {
-            return categoryToTypes.get(categoryOrder.get(position));
-        }
+        public Filter getFilter() { return filter; }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            final String category = categoryOrder.get(position);
-
             View v = convertView;
 
             if (v == null) {
                 LayoutInflater inflater = (LayoutInflater) ((Activity) ctx).getLayoutInflater();
-                v = inflater.inflate(R.layout.new_item_category_layout, null);
+                v = inflater.inflate(R.layout.new_item_food_type, null);
             }
 
-            TextView tv = (TextView) v.findViewById(R.id.new_item_category_header);
-            tv.setText(category);
-            tv.setGravity(Gravity.CENTER);
-            Constants.setColor(category, tv);
-            tv.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    View parent = (View) view.getParent();
-                    GridView grid = (GridView) parent.findViewById(R.id.new_item_category_grid);
-                    // toggle height
-                    int visibility = grid.getVisibility();
-                    if (visibility == View.VISIBLE) {
-                        TextView tv = (TextView) view;
-                        tv.setText(category);
-                        grid.setVisibility(View.GONE);
-                    } else {
-                        TextView tv = (TextView) view;
-                        tv.setText("");
-                        grid.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
+            final FoodType type = foodTypes.get(position);
 
-            GridView gv = (GridView) v.findViewById(R.id.new_item_category_grid);
-            NewItemCategoryGridAdapter categoryGridAdapter = new NewItemCategoryGridAdapter(categoryToTypes.get(category), ctx);
-            gv.setAdapter(categoryGridAdapter);
-            double numColumns = Constants.getDpWidth(ctx)/80.0;
-            int numRows = (int) Math.abs(Math.ceil(categoryToTypes.get(category).size() / numColumns));
-            Log.d("NewItemFragment", "numRows = " + numRows);
-            Log.d("NewItemFragment", "numCols = " + numColumns);
-            ViewGroup.LayoutParams params = gv.getLayoutParams();
-            params.height = numRows*Constants.convertDpToPixels(90, ctx);
-            gv.setLayoutParams(params);
+            v.setTag(type);
 
-            return v;
-        }
-
-        public int getItemViewType(int position) {
-            return Adapter.IGNORE_ITEM_VIEW_TYPE;
-        }
-
-        public int getViewTypeCount() {
-            return 1;
-        }
-    }
-
-    private class NewItemCategoryGridAdapter extends BaseAdapter {
-
-        private ArrayList<FoodType> foodTypes;
-        private Context ctx;
-
-        public NewItemCategoryGridAdapter(ArrayList<FoodType> foodTypes, Context context) {
-            this.foodTypes = new ArrayList<FoodType>(foodTypes);
-            ctx = context;
-        }
-
-        public int getCount() {
-            return foodTypes.size();
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            final int finalPos = position;
-
-            if (convertView == null) {
-                LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-                convertView = inflater.inflate(R.layout.new_item_food_type, parent, false);
-            }
-
-            Log.d("NewItemFragment", position + ", " + foodTypes.get(position).name);
-            TextView tv = (TextView) convertView.findViewById(R.id.new_item_food_type_name);
-            tv.setText(foodTypes.get(position).name);
-            tv.setGravity(Gravity.CENTER);
-
-            Drawable background = getResources().getDrawable(R.drawable.new_item_food_type_background);
-            int color = Constants.getColor(foodTypes.get(position).category);
-            background.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-            convertView.setBackgroundDrawable(background);
-
-            // Handle drag-and-drop
-            convertView.setTag(foodTypes.get(position));
-            NewItemFoodTypeDragListener listener = new NewItemFoodTypeDragListener(foodTypes.get(position));
-            convertView.setOnDragListener(listener);
-            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+            v.setOnLongClickListener(new View.OnLongClickListener() {
                 public boolean onLongClick(View view) {
-                    ClipData.Item item = new ClipData.Item(((FoodType) view.getTag()).name);
+                    String name = ((FoodType) view.getTag()).name;
+                    ClipData.Item item = new ClipData.Item(name);
 
                     ClipData dragData = new ClipData(
-                            ((FoodType) view.getTag()).name,
+                            name,
                             new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN},
                             item);
 
-                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
-
-                    view.startDrag(
+                    ImageView iv = (ImageView) view.findViewById(R.id.add_icon);
+                    iv.startDrag(
                             dragData,
-                            shadowBuilder,
-                            foodTypes.get(finalPos),
+                            new View.DragShadowBuilder(iv),
+                            type,
                             0);
                     return true;
                 }
             });
 
-            return convertView;
+            TextView tv = (TextView) v.findViewById(R.id.new_item_food_type_name);
+            tv.setText(type.name);
+
+            Constants.setColor(type.category, v);
+
+            return v;
         }
 
         public long getItemId(int position) {
@@ -277,29 +237,50 @@ public class NewItemFragment extends Fragment {
         }
 
         public Object getItem(int position) {
-            return foodTypes.get(position);
+            return filteredFoodTypes.get(position);
         }
 
-
-    }
-
-    private class NewItemFoodTypeDragListener implements View.OnDragListener {
-        private FoodType type;
-
-        public NewItemFoodTypeDragListener(FoodType type) {
-            this.type = type;
+        public int getCount() {
+            return filteredFoodTypes.size();
         }
 
-        public boolean onDrag(View v, DragEvent event) {
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    Log.d("DragListener", "I'm being dragged!");
-                    Log.d("DragListener", ((FoodType) v.getTag()).toString());
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    break;
+        private class FoodTypeFilter extends Filter {
+            private String filter;
+
+            public FoodTypeFilter() {
+
             }
-            return false;
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();
+
+                if (constraint == null || constraint.length() == 0) {
+                    results.values = foodTypes;
+                    results.count = foodTypes.size();
+                }
+                else {
+                    ArrayList<FoodType> filteredFoodTypes = new ArrayList<FoodType>();
+                    for (FoodType type : foodTypes) {
+                        if (type.name.toLowerCase().contains(constraint.toString().toLowerCase())) {
+                            filteredFoodTypes.add(type);
+                        }
+                    }
+                    results.values = filteredFoodTypes;
+                    results.count = filteredFoodTypes.size();
+                }
+
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                if (results.count == 0) notifyDataSetChanged();
+                else {
+                    filteredFoodTypes = (ArrayList<FoodType>) results.values;
+                    notifyDataSetChanged();
+                }
+            }
         }
     }
 
@@ -315,24 +296,35 @@ public class NewItemFragment extends Fragment {
                 case DragEvent.ACTION_DRAG_STARTED:
                     return true;
                 case DragEvent.ACTION_DRAG_ENTERED:
-                    ImageView dest = (ImageView) v;
+                    View dest = v;
                     dest.setBackgroundColor(Color.argb(0x80, 0xcc, 0xff, 0xcc));
                     dest.invalidate();
                     return true;
                 case DragEvent.ACTION_DRAG_EXITED:
-                    dest = (ImageView) v;
+                    dest = v;
                     dest.setBackgroundColor(Color.WHITE);
                     dest.invalidate();
                     return true;
                 case DragEvent.ACTION_DROP:
-                    Log.d("DragListener", "Dropping in list");
                     FoodType type = (FoodType) event.getLocalState();
                     int location = Constants.LOC_LIST;
-                    if (this.type == Constants.NEW_ITEM_DEST_LIST) location = Constants.LOC_LIST;
-                    else if (this.type == Constants.NEW_ITEM_DEST_FRIDGE) location = Constants.LOC_FRIDGE;
+                    switch (this.type) {
+                        case Constants.DEST_LIST:
+                            location = Constants.LOC_LIST;
+                            break;
+                        case Constants.DEST_FRIDGE:
+                            location = Constants.LOC_FRIDGE;
+                            break;
+                        case Constants.DEST_FREEZER:
+                            location = Constants.LOC_FREEZER;
+                            break;
+                        case Constants.DEST_PANTRY:
+                            location = Constants.LOC_PANTRY;
+                            break;
+                    }
                     FoodItem newItem = new FoodItem(type, Calendar.getInstance().getTime(), location, -1, type.db);
                     newItem.save();
-                    dest = (ImageView) v;
+                    dest = v;
                     dest.setBackgroundColor(Color.WHITE);
                     dest.invalidate();
                     return true;
