@@ -37,6 +37,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 
@@ -81,55 +82,13 @@ public class NewItemFragment extends Fragment {
         // Inflate the layout for this fragment
         View toReturn = inflater.inflate(R.layout.fragment_new_item, container, false);
 
-        // Manual ExpandableListView hack
-        FoodType.FoodTypeDbHelper dbHelper = new FoodType.FoodTypeDbHelper(getActivity());
+        FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
         FoodType[] foodTypes = FoodType.getAllFoodTypes(dbHelper.getWritableDatabase());
         if (foodTypes == null) foodTypes = new FoodType[0];
 
         final NewItemAdapter itemArrayAdapter = new NewItemAdapter(foodTypes, getActivity());
         ListView lv = (ListView) toReturn.findViewById(R.id.new_item_fragment_container);
         lv.setAdapter(itemArrayAdapter);
-
-        // Set listeners for destinations
-        View listDest = toReturn.findViewById(R.id.dest_list);
-        listDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_LIST));
-        ImageView listDestIcon = (ImageView) listDest.findViewById(R.id.dest_list_icon);
-        listDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayShoppingListFragment(getActivity(), false);
-            }
-        });
-
-        View fridgeDest = toReturn.findViewById(R.id.dest_fridge);
-        fridgeDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_FRIDGE));
-        ImageView fridgeDestIcon = (ImageView) fridgeDest.findViewById(R.id.dest_fridge_icon);
-        fridgeDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
-
-        View freezerDest = toReturn.findViewById(R.id.dest_freezer);
-        freezerDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_FREEZER));
-        ImageView freezerDestIcon = (ImageView) freezerDest.findViewById(R.id.dest_freezer_icon);
-        freezerDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
-
-        View pantryDest = toReturn.findViewById(R.id.dest_pantry);
-        pantryDest.setOnDragListener(new NewItemDestinationDragListener(Constants.DEST_PANTRY));
-        ImageView pantryDestIcon = (ImageView) pantryDest.findViewById(R.id.dest_pantry_icon);
-        pantryDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
 
         // Set up filter edit text
         EditText et = (EditText) toReturn.findViewById(R.id.new_item_search_text);
@@ -141,6 +100,7 @@ public class NewItemFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Log.d("NewItem", "onTextChanged: " + s);
                 itemArrayAdapter.getFilter().filter(s);
             }
 
@@ -200,34 +160,39 @@ public class NewItemFragment extends Fragment {
                 v = inflater.inflate(R.layout.new_item_food_type, null);
             }
 
-            final FoodType type = foodTypes.get(position);
+            final FoodType type = filteredFoodTypes.get(position);
 
             v.setTag(type);
-
-            v.setOnLongClickListener(new View.OnLongClickListener() {
-                public boolean onLongClick(View view) {
-                    String name = ((FoodType) view.getTag()).name;
-                    ClipData.Item item = new ClipData.Item(name);
-
-                    ClipData dragData = new ClipData(
-                            name,
-                            new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN},
-                            item);
-
-                    ImageView iv = (ImageView) view.findViewById(R.id.add_icon);
-                    iv.startDrag(
-                            dragData,
-                            new View.DragShadowBuilder(iv),
-                            type,
-                            0);
-                    return true;
-                }
-            });
 
             TextView tv = (TextView) v.findViewById(R.id.new_item_food_type_name);
             tv.setText(type.name);
 
-            Constants.setColor(type.category, v);
+            // Hook up buttons
+            View listButton = v.findViewById(R.id.new_item_list_add);
+            listButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
+                    Date reminder = cal.getTime();
+
+                    FoodItem newItem = new FoodItem(type, reminder, Constants.LOC_LIST, -1, type.db);
+                    newItem.save();
+                }
+            });
+
+            View addButton = v.findViewById(R.id.new_item_default_add);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
+                    Date reminder = cal.getTime();
+
+                    FoodItem newItem = new FoodItem(type, reminder, type.default_location, -1, type.db);
+                    newItem.save();
+                }
+            });
+
+            //Constants.setColor(type.category, v);
 
             return v;
         }
@@ -275,61 +240,9 @@ public class NewItemFragment extends Fragment {
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                if (results.count == 0) notifyDataSetChanged();
-                else {
-                    filteredFoodTypes = (ArrayList<FoodType>) results.values;
-                    notifyDataSetChanged();
-                }
+                filteredFoodTypes = (ArrayList<FoodType>) results.values;
+                notifyDataSetChanged();
             }
-        }
-    }
-
-    private class NewItemDestinationDragListener implements View.OnDragListener {
-        private final int type;
-
-        public NewItemDestinationDragListener(int type) {
-            this.type = type;
-        }
-
-        public boolean onDrag(View v, DragEvent event) {
-            switch(event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    return true;
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    View dest = v;
-                    dest.setBackgroundColor(Color.argb(0x80, 0xcc, 0xff, 0xcc));
-                    dest.invalidate();
-                    return true;
-                case DragEvent.ACTION_DRAG_EXITED:
-                    dest = v;
-                    dest.setBackgroundColor(Color.WHITE);
-                    dest.invalidate();
-                    return true;
-                case DragEvent.ACTION_DROP:
-                    FoodType type = (FoodType) event.getLocalState();
-                    int location = Constants.LOC_LIST;
-                    switch (this.type) {
-                        case Constants.DEST_LIST:
-                            location = Constants.LOC_LIST;
-                            break;
-                        case Constants.DEST_FRIDGE:
-                            location = Constants.LOC_FRIDGE;
-                            break;
-                        case Constants.DEST_FREEZER:
-                            location = Constants.LOC_FREEZER;
-                            break;
-                        case Constants.DEST_PANTRY:
-                            location = Constants.LOC_PANTRY;
-                            break;
-                    }
-                    FoodItem newItem = new FoodItem(type, Calendar.getInstance().getTime(), location, -1, type.db);
-                    newItem.save();
-                    dest = v;
-                    dest.setBackgroundColor(Color.WHITE);
-                    dest.invalidate();
-                    return true;
-            }
-            return true;
         }
     }
 }

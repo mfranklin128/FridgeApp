@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,6 +19,7 @@ import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.GestureDetector;
@@ -30,12 +32,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mfranklin.fridgeapp.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -79,60 +83,15 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
 
         // Populate list (set adapter)
         shoppingList = (ListView) toReturn.findViewById(R.id.shopping_list_items);
-        FoodItem.FoodItemDbHelper dbHelper = new FoodItem.FoodItemDbHelper(getActivity());
+        FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
         Log.d("Shopping List", "about to get shopping list items");
-        FoodItem[] listItems = FoodItem.getShoppingListItems(dbHelper.getWritableDatabase());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        FoodItem[] listItems = FoodItem.getShoppingListItems(db);
         Log.d("Shopping List", "got shopping list items");
         if (listItems == null) listItems = new FoodItem[0]; // ArrayAdapter complains if you give it a null array
         Log.d("Shopping List", "making a new ShoppingListAdapter");
         shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems);
         shoppingList.setAdapter(shoppingListAdapter);
-
-        // Set listeners for destinations
-        View listDest = toReturn.findViewById(R.id.dest_list);
-        listDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_LIST, shoppingListAdapter));
-        ImageView listDestIcon = (ImageView) listDest.findViewById(R.id.dest_list_icon);
-        listDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayShoppingListFragment(getActivity(), false);
-            }
-        });
-
-        View fridgeDest = toReturn.findViewById(R.id.dest_fridge);
-        fridgeDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_FRIDGE, shoppingListAdapter));
-        ImageView fridgeDestIcon = (ImageView) fridgeDest.findViewById(R.id.dest_fridge_icon);
-        fridgeDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
-
-        View freezerDest = toReturn.findViewById(R.id.dest_freezer);
-        freezerDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_FREEZER, shoppingListAdapter));
-        ImageView freezerDestIcon = (ImageView) freezerDest.findViewById(R.id.dest_freezer_icon);
-        freezerDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
-
-        View pantryDest = toReturn.findViewById(R.id.dest_pantry);
-        pantryDest.setOnDragListener(new ShoppingListDestinationDragListener(Constants.DEST_PANTRY, shoppingListAdapter));
-        ImageView pantryDestIcon = (ImageView) pantryDest.findViewById(R.id.dest_pantry_icon);
-        pantryDestIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyFragmentManager.displayStashFragment(getActivity(), false);
-            }
-        });
-
-        // Bold the text for List
-        TextView label = (TextView) listDest.findViewById(R.id.dest_list_text);
-        label.setTypeface(null, Typeface.BOLD);
-        listDest.setBackgroundColor(Color.argb(0x80, 0x80, 0x80, 0x80));
 
         return toReturn;
     }
@@ -195,39 +154,42 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
                rowView = inflater.inflate(R.layout.shopping_list_item, parent, false);
             }
 
-            rowView.setTag(thisFoodItem);
-
-            ShoppingListItemDragListener listener = new ShoppingListItemDragListener(thisFoodItem);
-            rowView.setOnDragListener(listener);
-
-            rowView.setTag(thisFoodItem);
-
-            rowView.setOnLongClickListener(new View.OnLongClickListener() {
-                public boolean onLongClick(View view) {
-                    String name = ((FoodItem) view.getTag()).type.name;
-                    Log.d("Shopping List", "in OnLongClick");
-                    ClipData.Item item = new ClipData.Item(name);
-
-                    ClipData dragData = new ClipData(
-                            name,
-                            new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN},
-                            item);
-
-                    ImageView iv = (ImageView) view.findViewById(R.id.add_icon);
-                    iv.startDrag(
-                            dragData,
-                            new View.DragShadowBuilder(iv),
-                            thisFoodItem,
-                            0);
-                    return true;
-                }
-            });
-
             TextView tv = (TextView) rowView.findViewById(R.id.shopping_list_item_name);
             tv.setText(thisFoodItem.type.name);
 
-            // TODO: hook up the checkbox for multiple items
+            // Hook up add and delete buttons
+            View addButton = rowView.findViewById(R.id.shopping_list_item_add);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    thisFoodItem.location = thisFoodItem.type.default_location;
+                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, thisFoodItem.type.default_reminder);
+                    Date reminder = cal.getTime();
+                    thisFoodItem.save();
+                    foodItemList.remove(thisFoodItem);
+                    notifyDataSetChanged();
+                    final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.type.name +
+                        " to " + Constants.locationFlagToString(thisFoodItem.location), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
+                    addConfirmation.show();
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            addConfirmation.cancel();
+                        }
+                    }, 1000);
+                }
+            });
 
+            View deleteButton = rowView.findViewById(R.id.shopping_list_item_remove);
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    thisFoodItem.delete();
+                    foodItemList.remove(thisFoodItem);
+                    notifyDataSetChanged();
+                }
+            });
             return rowView;
         }
 
@@ -241,79 +203,4 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
         }
     }
 
-    private class ShoppingListItemDragListener implements View.OnDragListener {
-        private FoodItem item;
-
-        public ShoppingListItemDragListener(FoodItem item) {
-            this.item = item;
-        }
-
-        public boolean onDrag(View v, DragEvent event) {
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    break;
-            }
-            return false;
-        }
-    }
-
-    private class ShoppingListDestinationDragListener implements View.OnDragListener {
-        private final int type;
-        private final ShoppingListAdapter adapter;
-        private int originalColor;
-
-        public ShoppingListDestinationDragListener(int type, ShoppingListAdapter slAdapter) {
-            this.type = type;
-            adapter = slAdapter;
-            if (this.type == Constants.DEST_LIST) {
-                originalColor = Color.argb(0x80, 0x80, 0x80, 0x80);
-            }
-            else {
-                originalColor = Color.WHITE;
-            }
-        }
-
-        public boolean onDrag(View v, DragEvent event) {
-            switch(event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    return true;
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    View dest = v;
-                    dest.setBackgroundColor(Color.argb(0x80, 0xcc, 0xff, 0xcc));
-                    dest.invalidate();
-                    return true;
-                case DragEvent.ACTION_DRAG_EXITED:
-                    v.setBackgroundColor(originalColor);
-                    return true;
-                case DragEvent.ACTION_DROP:
-                    FoodItem item = (FoodItem) event.getLocalState();
-                    int location = Constants.LOC_FRIDGE;
-                    switch (this.type) {
-                        case Constants.DEST_FRIDGE:
-                            location = Constants.LOC_FRIDGE;
-                            break;
-                        case Constants.DEST_FREEZER:
-                            location = Constants.LOC_FREEZER;
-                            break;
-                        case Constants.DEST_LIST:
-                            location = Constants.LOC_LIST;
-                            break;
-                        case Constants.DEST_PANTRY:
-                            location = Constants.LOC_PANTRY;
-                            break;
-                    }
-                    item.location = location;
-                    item.save();
-                    if (this.type != Constants.DEST_LIST) {
-                        adapter.remove(item);
-                        adapter.notifyDataSetChanged();
-                    }
-                    v.setBackgroundColor(originalColor);
-                    return true;
-            }
-            return true;
-        }
-    }
 }

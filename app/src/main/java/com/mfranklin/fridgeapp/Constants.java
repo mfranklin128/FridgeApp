@@ -19,12 +19,18 @@ public class Constants {
     public static final int LOC_LIST = 2;
     public static final int LOC_PANTRY = 3;
 
+    public static String locationFlagToString(int location) {
+        switch (location) {
+            case LOC_FRIDGE: return "fridge";
+            case LOC_FREEZER: return "freezer";
+            case LOC_PANTRY: return "pantry";
+            case LOC_LIST: return "shopping list";
+        }
+        return null; // should never return null
+    }
+
     public static final SimpleDateFormat expDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    public static final int DEST_FRIDGE = 0;
-    public static final int DEST_FREEZER = 1;
-    public static final int DEST_LIST = 2;
-    public static final int DEST_PANTRY = 3;
 
     public static final int VEGETABLE_GREEN = 0xA012AD2A;
     public static final int MEAT_RED = 0xA0D68A59;

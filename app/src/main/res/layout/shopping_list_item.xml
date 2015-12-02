@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingRight="8dip"
-    android:background="@drawable/image_border">
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="false"
-        />
+    android:paddingRight="8dip">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:paddingLeft="16dp"
         android:padding="8dp"
+        android:layout_alignParentLeft="true"
         android:id="@+id/shopping_list_item_name" />
-    <ImageView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
+    <ImageButton
+        android:id="@+id/shopping_list_item_add"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="8dp"
         android:src="@mipmap/ic_add"
-        android:id="@+id/add_icon"
-        android:visibility="invisible"/>
-</LinearLayout>
+        android:layout_toLeftOf="@+id/shopping_list_item_remove"
+        android:background="@null"
+        android:clickable="true"/>
+    <ImageButton
+        android:id="@+id/shopping_list_item_remove"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="8dp"
+        android:src="@mipmap/ic_delete"
+        android:layout_alignParentRight="true"
+        android:background="@null"
+        android:clickable="true" />
+</RelativeLayout>

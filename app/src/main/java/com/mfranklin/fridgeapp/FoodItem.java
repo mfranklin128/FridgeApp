@@ -5,8 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
+import android.widget.Filter;
 
 import com.mfranklin.fridgeapp.FridgeAppContract.*;
 
@@ -46,6 +46,8 @@ public class FoodItem {
         int idIndex = c.getColumnIndex(FoodItemEntry._ID+ "fooditem");
         int foodTypeNameIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_NAME + "foodtype");
         int foodTypeCategoryIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype");
+        int foodTypeReminderIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + "foodtype");
+        int foodTypeLocationIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype");
         int foodTypeIdIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem");
 
         // We need a location, but a null expDate is permitted if the item is on the list
@@ -66,8 +68,10 @@ public class FoodItem {
 
         String foodTypeName = c.getString(foodTypeNameIndex);
         String foodTypeCategory = c.getString(foodTypeCategoryIndex);
+        int defaultReminder = c.getInt(foodTypeReminderIndex);
+        int defaultLocation = c.getInt(foodTypeLocationIndex);
         long foodTypeId = c.getLong(foodTypeIdIndex);
-        type = new FoodType(foodTypeName, foodTypeCategory, foodTypeId, db);
+        type = new FoodType(foodTypeName, foodTypeCategory, defaultReminder, defaultLocation, foodTypeId, db);
     }
 
     public long save() {
@@ -107,7 +111,9 @@ public class FoodItem {
                 FoodItemEntry.COLUMN_NAME_EXP_DATE,
                 FoodTypeEntry._ID,
                 FoodTypeEntry.COLUMN_NAME_NAME,
-                FoodTypeEntry.COLUMN_NAME_CATEGORY
+                FoodTypeEntry.COLUMN_NAME_CATEGORY,
+                FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER,
+                FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION
         };
 
         String sortOrder = FoodTypeEntry.COLUMN_NAME_NAME + " ASC";
@@ -119,7 +125,9 @@ public class FoodItem {
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
-                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype" +
                         " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
@@ -163,7 +171,9 @@ public class FoodItem {
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
-                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype" +
                         " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
@@ -189,39 +199,4 @@ public class FoodItem {
         }
     }
 
-    public static class FoodItemDbHelper extends SQLiteOpenHelper {
-        public static final int DATABASE_VERSION = 5;
-        public static final String DATABASE_NAME = "FridgeApp.db";
-
-        public FoodItemDbHelper(Context ctx) {
-            super(ctx, DATABASE_NAME, null, DATABASE_VERSION);
-        }
-
-        public static final String SQL_CREATE_STMTS =
-                "CREATE TABLE IF NOT EXISTS " + FridgeAppContract.FoodItemEntry.TABLE_NAME + " (" +
-                        FridgeAppContract.FoodItemEntry._ID + " INTEGER PRIMARY KEY," +
-                        FridgeAppContract.FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " NOT NULL," +
-                        FridgeAppContract.FoodItemEntry.COLUMN_NAME_LOCATION + " INTEGER," +
-                        FridgeAppContract.FoodItemEntry.COLUMN_NAME_EXP_DATE + " TEXT," +
-                        "FOREIGN KEY(" + FridgeAppContract.FoodItemEntry.COLUMN_NAME_FOOD_TYPE +
-                        ") REFERENCES " + FridgeAppContract.FoodTypeEntry.TABLE_NAME + "(" + FridgeAppContract.FoodTypeEntry.COLUMN_NAME_NAME + ")" +
-                        " )";
-
-        public static final String SQL_DELETE_STMTS = "" +
-                "DROP TABLE IF EXISTS " + FridgeAppContract.FoodItemEntry.TABLE_NAME;
-
-        public void onCreate(SQLiteDatabase db) {
-            db.execSQL((FoodType.FoodTypeDbHelper.SQL_CREATE_STMTS));
-            if (FoodType.FoodTypePrePopulateSql.dbIsEmpty(db)) {
-                FoodType.FoodTypePrePopulateSql.prePopulate(db);
-            }
-            db.execSQL(SQL_CREATE_STMTS);
-        }
-
-        // ONLY FOR DEVELOPMENT!
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL(SQL_DELETE_STMTS);
-            onCreate(db);
-        }
-    }
 }
