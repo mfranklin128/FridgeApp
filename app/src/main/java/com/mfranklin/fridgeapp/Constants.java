@@ -21,10 +21,10 @@ public class Constants {
 
     public static String locationFlagToString(int location) {
         switch (location) {
-            case LOC_FRIDGE: return "fridge";
-            case LOC_FREEZER: return "freezer";
-            case LOC_PANTRY: return "pantry";
-            case LOC_LIST: return "shopping list";
+            case LOC_FRIDGE: return "Fridge";
+            case LOC_FREEZER: return "Freezer";
+            case LOC_PANTRY: return "Pantry";
+            case LOC_LIST: return "Shopping List";
         }
         return null; // should never return null
     }

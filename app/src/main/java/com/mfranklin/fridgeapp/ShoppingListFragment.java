@@ -23,14 +23,17 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -90,7 +93,7 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
         Log.d("Shopping List", "got shopping list items");
         if (listItems == null) listItems = new FoodItem[0]; // ArrayAdapter complains if you give it a null array
         Log.d("Shopping List", "making a new ShoppingListAdapter");
-        shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems);
+        shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems, container);
         shoppingList.setAdapter(shoppingListAdapter);
 
         return toReturn;
@@ -137,11 +140,13 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
 
         private final Context ctx;
         private ArrayList<FoodItem> foodItemList;
+        private ViewGroup topLevelViewGroup;
 
-        public ShoppingListAdapter(Context context, FoodItem[] foodItems) {
+        public ShoppingListAdapter(Context context, FoodItem[] foodItems, ViewGroup topLevelViewGroup) {
             super(context, -1, new ArrayList<FoodItem>(Arrays.asList(foodItems)));
             this.ctx = context;
             foodItemList = new ArrayList<FoodItem>(Arrays.asList(foodItems));
+            this.topLevelViewGroup = topLevelViewGroup;
         }
 
         @Override
@@ -188,6 +193,31 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
                     thisFoodItem.delete();
                     foodItemList.remove(thisFoodItem);
                     notifyDataSetChanged();
+                }
+            });
+
+            // Hook up detail card display on touch
+            final PopupWindow detailCard = new PopupWindow(ctx);
+            View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
+            detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
+            // Fill in details
+            TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
+            TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
+            TextView location = (TextView) detailCardView.findViewById(R.id.detail_card_location_val);
+            TextView defaultLocation = (TextView) detailCardView.findViewById(R.id.detail_card_default_location_val);
+            name.setText(thisFoodItem.type.name);
+            category.setText(thisFoodItem.type.category);
+            location.setText(Constants.locationFlagToString(thisFoodItem.location));
+            defaultLocation.setText(Constants.locationFlagToString(thisFoodItem.type.default_location));
+            detailCard.setFocusable(true);
+            detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
+            detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+            detailCard.setContentView(detailCardView);
+            rowView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("ShoppingList", "in row onclick");
+                    detailCard.showAsDropDown(v, -5, 0);
                 }
             });
             return rowView;
