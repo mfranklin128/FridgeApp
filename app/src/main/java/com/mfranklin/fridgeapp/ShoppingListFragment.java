@@ -94,7 +94,7 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
         Log.d("Shopping List", "got shopping list items");
         if (listItems == null) listItems = new FoodItem[0]; // ArrayAdapter complains if you give it a null array
         Log.d("Shopping List", "making a new ShoppingListAdapter");
-        shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems, container);
+        shoppingListAdapter = new ShoppingListAdapter(getActivity(), listItems);
         shoppingList.setAdapter(shoppingListAdapter);
 
         return toReturn;

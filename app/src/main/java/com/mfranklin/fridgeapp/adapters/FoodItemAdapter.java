@@ -1,11 +1,25 @@
 package com.mfranklin.fridgeapp.adapters;
 
 import android.content.Context;
+import android.database.DataSetObserver;
+import android.graphics.Color;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.Filter;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.mfranklin.fridgeapp.Constants;
 import com.mfranklin.fridgeapp.FoodItem;
+import com.mfranklin.fridgeapp.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,5 +125,58 @@ abstract class FoodItemAdapter extends BaseAdapter {
                 notifyDataSetChanged();
             }
         }
+    }
+
+    protected static View assignItemDetailCard(final Context ctx, LayoutInflater inflater, final FoodItem thisFoodItem) {
+        View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
+        detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
+        // Fill in details
+        TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
+        TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
+        name.setText(thisFoodItem.type.name);
+        category.setText(thisFoodItem.type.category);
+
+        // Set up locations spinner
+        Spinner locations = (Spinner) detailCardView.findViewById(R.id.detail_card_location_vals);
+        String[] locationVals = {
+                Constants.locationFlagToString(Constants.LOC_LIST),
+                Constants.locationFlagToString(Constants.LOC_FRIDGE),
+                Constants.locationFlagToString(Constants.LOC_FREEZER),
+                Constants.locationFlagToString(Constants.LOC_PANTRY)};
+
+        locations.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, locationVals));
+        locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("FoodItemAdapter", "in onItemSelected");
+                int newLocation = Constants.locationStringToFlag((String) parent.getItemAtPosition(position));
+                thisFoodItem.location = newLocation;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        // get index to start at
+        int index = 0;
+        for (int i = 0; i < locationVals.length; i++) {
+            if (Constants.locationFlagToString(thisFoodItem.location).equals(locationVals[i])) index = i;
+        }
+        locations.setSelection(index);
+
+        // Set up save() button
+        Button saveButton = (Button) detailCardView.findViewById(R.id.detail_card_save_button);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                thisFoodItem.save();
+
+                Toast confirm = Toast.makeText(ctx, "Updated", Toast.LENGTH_SHORT);
+                confirm.show();
+            }
+        });
+
+        return detailCardView;
     }
 }

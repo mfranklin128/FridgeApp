@@ -25,8 +25,10 @@ import java.util.Date;
  * Created by root on 12/3/15.
  */
 public class ShoppingListAdapter extends FoodItemAdapter {
-    public ShoppingListAdapter(Context context, FoodItem[] foodItems, ViewGroup topLevelViewGroup) {
+    public ShoppingListAdapter(Context context, FoodItem[] foodItems) {
         super(context, foodItems);
+        filter.addLocationFilter(Constants.LOC_LIST);
+        filter.filter();
     }
 
     @Override
@@ -79,26 +81,29 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         });
 
         // Hook up detail card display on touch
-        final PopupWindow detailCard = new PopupWindow(ctx);
-        View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
-        detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
-        // Fill in details
-        TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
-        TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
-        TextView location = (TextView) detailCardView.findViewById(R.id.detail_card_location_val);
-        TextView defaultLocation = (TextView) detailCardView.findViewById(R.id.detail_card_default_location_val);
-        name.setText(thisFoodItem.type.name);
-        category.setText(thisFoodItem.type.category);
-        location.setText(Constants.locationFlagToString(thisFoodItem.location));
-        defaultLocation.setText(Constants.locationFlagToString(thisFoodItem.type.default_location));
-        detailCard.setFocusable(true);
+        class RefreshPopupWindow extends PopupWindow {
+            public RefreshPopupWindow(Context ctx) {
+                super(ctx);
+            }
+
+            public void dismiss() {
+                Log.d("StashAdapter", "dismiss() being called");
+                filter.filter();
+                notifyDataSetChanged();
+                super.dismiss();
+            }
+        }
+        final RefreshPopupWindow detailCard = new RefreshPopupWindow(ctx);
+        detailCard.setOutsideTouchable(true);
+        View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
         detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
         detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
         detailCard.setContentView(detailCardView);
+        detailCard.setOutsideTouchable(true);
+        detailCard.setFocusable(true);
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("ShoppingList", "in row onclick");
                 detailCard.showAsDropDown(v, -5, 0);
             }
         });

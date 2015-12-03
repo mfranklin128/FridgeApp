@@ -29,6 +29,14 @@ public class Constants {
         return null; // should never return null
     }
 
+    public static int locationStringToFlag(String location) {
+        if (location.equals("Fridge")) return LOC_FRIDGE;
+        if (location.equals("Freezer")) return LOC_FREEZER;
+        if (location.equals("Pantry")) return LOC_PANTRY;
+        if (location.equals("Shopping List")) return LOC_LIST;
+        return -1; // should never
+    }
+
     public static final SimpleDateFormat expDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 

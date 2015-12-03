@@ -20,8 +20,7 @@
             android:id="@+id/detail_card_name_val"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:gravity="right"
-            android:textSize="17sp"/>
+            android:gravity="right"/>
     </LinearLayout>
 
     <LinearLayout
@@ -51,28 +50,17 @@
             android:text="Location: "
             android:textStyle="bold"
             android:textSize="17sp"/>
-        <TextView
-            android:id="@+id/detail_card_location_val"
+        <Spinner
+            android:id="@+id/detail_card_location_vals"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:gravity="right"
-            android:textSize="17sp"/>
+            android:spinnerMode="dialog"/>
     </LinearLayout>
-
-    <LinearLayout
+    <Button
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Default Location: "
-            android:textStyle="bold"
-            android:textSize="17sp"/>
-        <TextView
-            android:id="@+id/detail_card_default_location_val"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:textSize="17sp"/>
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        style="?android:attr/borderlessButtonStyle"
+        android:text="Save"
+        android:id="@+id/detail_card_save_button"/>
 </LinearLayout>
