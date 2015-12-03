@@ -38,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mfranklin.fridgeapp.*;
+import com.mfranklin.fridgeapp.adapters.ShoppingListAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -136,101 +137,101 @@ public class ShoppingListFragment extends Fragment implements View.OnClickListen
     }
 
 
-    private class ShoppingListAdapter extends ArrayAdapter<FoodItem> {
-
-        private final Context ctx;
-        private ArrayList<FoodItem> foodItemList;
-        private ViewGroup topLevelViewGroup;
-
-        public ShoppingListAdapter(Context context, FoodItem[] foodItems, ViewGroup topLevelViewGroup) {
-            super(context, -1, new ArrayList<FoodItem>(Arrays.asList(foodItems)));
-            this.ctx = context;
-            foodItemList = new ArrayList<FoodItem>(Arrays.asList(foodItems));
-            this.topLevelViewGroup = topLevelViewGroup;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            final ViewGroup finalParent = parent;
-            final FoodItem thisFoodItem = foodItemList.get(position);
-            final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View rowView = convertView;
-            if (rowView == null) {
-               rowView = inflater.inflate(R.layout.shopping_list_item, parent, false);
-            }
-
-            TextView tv = (TextView) rowView.findViewById(R.id.shopping_list_item_name);
-            tv.setText(thisFoodItem.type.name);
-
-            // Hook up add and delete buttons
-            View addButton = rowView.findViewById(R.id.shopping_list_item_add);
-            addButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    thisFoodItem.location = thisFoodItem.type.default_location;
-                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, thisFoodItem.type.default_reminder);
-                    Date reminder = cal.getTime();
-                    thisFoodItem.save();
-                    foodItemList.remove(thisFoodItem);
-                    notifyDataSetChanged();
-                    final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.type.name +
-                        " to " + Constants.locationFlagToString(thisFoodItem.location), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
-                    addConfirmation.show();
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            addConfirmation.cancel();
-                        }
-                    }, 1000);
-                }
-            });
-
-            View deleteButton = rowView.findViewById(R.id.shopping_list_item_remove);
-            deleteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    thisFoodItem.delete();
-                    foodItemList.remove(thisFoodItem);
-                    notifyDataSetChanged();
-                }
-            });
-
-            // Hook up detail card display on touch
-            final PopupWindow detailCard = new PopupWindow(ctx);
-            View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
-            detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
-            // Fill in details
-            TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
-            TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
-            TextView location = (TextView) detailCardView.findViewById(R.id.detail_card_location_val);
-            TextView defaultLocation = (TextView) detailCardView.findViewById(R.id.detail_card_default_location_val);
-            name.setText(thisFoodItem.type.name);
-            category.setText(thisFoodItem.type.category);
-            location.setText(Constants.locationFlagToString(thisFoodItem.location));
-            defaultLocation.setText(Constants.locationFlagToString(thisFoodItem.type.default_location));
-            detailCard.setFocusable(true);
-            detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
-            detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-            detailCard.setContentView(detailCardView);
-            rowView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.d("ShoppingList", "in row onclick");
-                    detailCard.showAsDropDown(v, -5, 0);
-                }
-            });
-            return rowView;
-        }
-
-        public void remove(FoodItem item) {
-            super.remove(item);
-            foodItemList.remove(item);
-        }
-
-        public int getCount() {
-            return foodItemList.size();
-        }
-    }
+//    private class ShoppingListAdapter extends ArrayAdapter<FoodItem> {
+//
+//        private final Context ctx;
+//        private ArrayList<FoodItem> foodItemList;
+//        private ViewGroup topLevelViewGroup;
+//
+//        public ShoppingListAdapter(Context context, FoodItem[] foodItems, ViewGroup topLevelViewGroup) {
+//            super(context, -1, new ArrayList<FoodItem>(Arrays.asList(foodItems)));
+//            this.ctx = context;
+//            foodItemList = new ArrayList<FoodItem>(Arrays.asList(foodItems));
+//            this.topLevelViewGroup = topLevelViewGroup;
+//        }
+//
+//        @Override
+//        public View getView(int position, View convertView, ViewGroup parent) {
+//            final ViewGroup finalParent = parent;
+//            final FoodItem thisFoodItem = foodItemList.get(position);
+//            final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//            View rowView = convertView;
+//            if (rowView == null) {
+//               rowView = inflater.inflate(R.layout.shopping_list_item, parent, false);
+//            }
+//
+//            TextView tv = (TextView) rowView.findViewById(R.id.shopping_list_item_name);
+//            tv.setText(thisFoodItem.type.name);
+//
+//            // Hook up add and delete buttons
+//            View addButton = rowView.findViewById(R.id.shopping_list_item_add);
+//            addButton.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    thisFoodItem.location = thisFoodItem.type.default_location;
+//                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, thisFoodItem.type.default_reminder);
+//                    Date reminder = cal.getTime();
+//                    thisFoodItem.save();
+//                    foodItemList.remove(thisFoodItem);
+//                    notifyDataSetChanged();
+//                    final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.type.name +
+//                        " to " + Constants.locationFlagToString(thisFoodItem.location), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
+//                    addConfirmation.show();
+//                    Handler handler = new Handler();
+//                    handler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            addConfirmation.cancel();
+//                        }
+//                    }, 1000);
+//                }
+//            });
+//
+//            View deleteButton = rowView.findViewById(R.id.shopping_list_item_remove);
+//            deleteButton.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    thisFoodItem.delete();
+//                    foodItemList.remove(thisFoodItem);
+//                    notifyDataSetChanged();
+//                }
+//            });
+//
+//            // Hook up detail card display on touch
+//            final PopupWindow detailCard = new PopupWindow(ctx);
+//            View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
+//            detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
+//            // Fill in details
+//            TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
+//            TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
+//            TextView location = (TextView) detailCardView.findViewById(R.id.detail_card_location_val);
+//            TextView defaultLocation = (TextView) detailCardView.findViewById(R.id.detail_card_default_location_val);
+//            name.setText(thisFoodItem.type.name);
+//            category.setText(thisFoodItem.type.category);
+//            location.setText(Constants.locationFlagToString(thisFoodItem.location));
+//            defaultLocation.setText(Constants.locationFlagToString(thisFoodItem.type.default_location));
+//            detailCard.setFocusable(true);
+//            detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
+//            detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+//            detailCard.setContentView(detailCardView);
+//            rowView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Log.d("ShoppingList", "in row onclick");
+//                    detailCard.showAsDropDown(v, -5, 0);
+//                }
+//            });
+//            return rowView;
+//        }
+//
+//        public void remove(FoodItem item) {
+//            super.remove(item);
+//            foodItemList.remove(item);
+//        }
+//
+//        public int getCount() {
+//            return foodItemList.size();
+//        }
+//    }
 
 }

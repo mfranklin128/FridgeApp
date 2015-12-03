@@ -20,6 +20,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.mfranklin.fridgeapp.adapters.StashAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +65,7 @@ public class StashFragment extends Fragment {
         FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
         FoodItem[] stashItems = FoodItem.getStashItems(dbHelper.getWritableDatabase());
         if (stashItems == null) stashItems = new FoodItem[0]; // ArrayAdapter doesn't like null, but 0-len is fine
-        stashAdapter = new StashAdapter(getActivity(), stashItems, Constants.LOC_FRIDGE);
+        stashAdapter = new StashAdapter(getActivity(), stashItems);
         stashList.setAdapter(stashAdapter);
 
         // Hook up Filter row expansion
@@ -166,135 +167,4 @@ public class StashFragment extends Fragment {
         // TODO: Update argument type and name
         public void onStashFragmentInteraction();
     }
-
-    private class StashAdapter extends BaseAdapter {
-
-        private final Context ctx;
-        private ArrayList<FoodItem> stashItemList;
-        private ArrayList<FoodItem> filteredStashList;
-        private FoodItemFilter filter;
-
-        public StashAdapter(Context context, FoodItem[] stashItems, int locationFilter) {
-            super();
-            this.ctx = context;
-            stashItemList = new ArrayList<FoodItem>(Arrays.asList(stashItems));
-            filteredStashList = new ArrayList<FoodItem>(Arrays.asList(stashItems));
-            this.filter = new FoodItemFilter();
-            filter.filter();
-        }
-
-        public Filter getFilter() { return filter; }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            final FoodItem thisFoodItem = filteredStashList.get(position);
-            final int finalPosition = position;
-
-            View rowView = convertView;
-            if (rowView == null) {
-                rowView = inflater.inflate(R.layout.stash_item, parent, false);
-            }
-
-            // set name
-            TextView tv = (TextView) rowView.findViewById(R.id.stash_item_name);
-            tv.setText(thisFoodItem.type.name);
-
-            // hook up delete button
-            Button b = (Button) rowView.findViewById(R.id.stash_item_delete);
-            b.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    thisFoodItem.delete();
-                    stashItemList.remove(thisFoodItem);
-                    filteredStashList.remove(thisFoodItem);
-                    notifyDataSetChanged();
-                }
-            });
-            return rowView;
-        }
-
-        public int getCount() {
-            return filteredStashList.size();
-        }
-        public Object getItem(int position) { return filteredStashList.get(position);}
-        public long getItemId(int position) { return position;}
-
-        public class FoodItemFilter extends Filter {
-
-            private Set<Integer> locationFilters = new HashSet<Integer>();
-            private String nameFilter = null;
-            private int reminderFilter = 0; // figure this out
-            private String categoryFilter = null; // figure this out
-
-            public void addLocationFilter(int locationFilter) {
-                locationFilters.add(locationFilter);
-            }
-
-            public void removeLocationFilter(int locationFilter) {
-                locationFilters.remove(locationFilter);
-            }
-
-            public void setNameFilter(String nameFilter) {
-                this.nameFilter = nameFilter;
-            }
-
-            private boolean hasNoConstraints() {
-                return locationFilters.size() == 0 && nameFilter == null;
-            }
-
-            private boolean matchesLocationFilter(FoodItem item) {
-                Log.d("StashFragment", "checking matchesLocationFilter: " + item.location);
-                if (locationFilters.size() == 0) return true;
-                for (Integer location : locationFilters) if (item.location == location) return true;
-                return false;
-            }
-
-            private boolean matchesNameFilter(FoodItem item) {
-                if (nameFilter == null || nameFilter.length() == 0) return true;
-                String[] nameWords = item.type.name.split("\\s+");
-                for (String nameWord : nameWords) if (nameWord.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
-                return false;
-            }
-
-            public void filter() {
-                filter("");
-            }
-            //Instead of using a constraint passed as an argument, we separate the filtering
-            // (update the view) from the constraining (searching the data)
-            protected Filter.FilterResults performFiltering(CharSequence constraint) {
-                Log.d("StashFragment", "in performFiltering");
-                FilterResults results = new FilterResults();
-
-                if (hasNoConstraints()) {
-                    results.values = stashItemList;
-                    results.count = stashItemList.size();
-                }
-                else {
-                    // add it if it matches both name and location filters
-                    ArrayList<FoodItem> filteredStashList = new ArrayList<FoodItem>();
-                    for (FoodItem item : stashItemList) {
-                        if (matchesLocationFilter(item) && matchesNameFilter(item)) filteredStashList.add(item);
-                    }
-                    results.values = filteredStashList;
-                    results.count = filteredStashList.size();
-                }
-
-                return results;
-            }
-
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                Log.d("StashFragment", "in publishResults");
-                if (results.count == 0) {
-                    filteredStashList = (ArrayList) results.values;
-                    notifyDataSetChanged();
-                }
-                else {
-                    Log.d("StashFragment", "non-zero count");
-                    filteredStashList = (ArrayList) results.values;
-                    notifyDataSetChanged();
-                }
-            }
-        }
-    }
-
 }
