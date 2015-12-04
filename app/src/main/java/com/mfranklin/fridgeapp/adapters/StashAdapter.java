@@ -31,7 +31,6 @@ public class StashAdapter extends FoodItemAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final FoodItem thisFoodItem = filteredItemList.get(position);
-        final int finalPosition = position;
 
         View rowView = convertView;
         if (rowView == null) {

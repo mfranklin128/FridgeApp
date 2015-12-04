@@ -175,7 +175,7 @@ public class NewItemFragment extends Fragment {
                     Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
                     Date reminder = cal.getTime();
 
-                    FoodItem newItem = new FoodItem(type, reminder, Constants.LOC_LIST, -1, type.db);
+                    FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_LIST, type.default_location, -1, type.db);
                     newItem.save();
                 }
             });
@@ -187,7 +187,7 @@ public class NewItemFragment extends Fragment {
                     Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
                     Date reminder = cal.getTime();
 
-                    FoodItem newItem = new FoodItem(type, reminder, type.default_location, -1, type.db);
+                    FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_STASH, type.default_location, -1, type.db);
                     newItem.save();
                 }
             });
@@ -210,7 +210,6 @@ public class NewItemFragment extends Fragment {
         }
 
         private class FoodTypeFilter extends Filter {
-            private String filter;
 
             public FoodTypeFilter() {
 

@@ -32,6 +32,7 @@ public class FridgeAppDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE IF NOT EXISTS " + FridgeAppContract.FoodItemEntry.TABLE_NAME + " (" +
                     FridgeAppContract.FoodItemEntry._ID + " INTEGER PRIMARY KEY," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " NOT NULL," +
+                    FridgeAppContract.FoodItemEntry.COLUMN_NAME_STATUS + " INTEGER NOT NULL," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_LOCATION + " INTEGER," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_EXP_DATE + " TEXT," +
                     "FOREIGN KEY(" + FridgeAppContract.FoodItemEntry.COLUMN_NAME_FOOD_TYPE +
@@ -57,8 +58,8 @@ public class FridgeAppDbHelper extends SQLiteOpenHelper {
 
     // ONLY FOR DEVELOPMENT!
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(FOOD_TYPE_SQL_DELETE_STMTS);
         db.execSQL(FOOD_ITEM_SQL_DELETE_STMTS);
+        db.execSQL(FOOD_TYPE_SQL_DELETE_STMTS);
         onCreate(db);
     }
 

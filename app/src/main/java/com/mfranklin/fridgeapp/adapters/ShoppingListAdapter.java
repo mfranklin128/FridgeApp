@@ -27,7 +27,7 @@ import java.util.Date;
 public class ShoppingListAdapter extends FoodItemAdapter {
     public ShoppingListAdapter(Context context, FoodItem[] foodItems) {
         super(context, foodItems);
-        filter.addLocationFilter(Constants.LOC_LIST);
+        filter.addStatusFilter(Constants.STATUS_LIST);
         filter.filter();
     }
 
@@ -49,7 +49,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                thisFoodItem.location = thisFoodItem.type.default_location;
+                thisFoodItem.setLocation(thisFoodItem.type.default_location);
                 Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, thisFoodItem.type.default_reminder);
                 Date reminder = cal.getTime();
                 thisFoodItem.save();
@@ -57,7 +57,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
                 filteredItemList.remove(thisFoodItem);
                 notifyDataSetChanged();
                 final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.type.name +
-                        " to " + Constants.locationFlagToString(thisFoodItem.location), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
+                        " to " + Constants.locationToString(thisFoodItem.getLocation()), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
                 addConfirmation.show();
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -87,7 +87,6 @@ public class ShoppingListAdapter extends FoodItemAdapter {
             }
 
             public void dismiss() {
-                Log.d("StashAdapter", "dismiss() being called");
                 filter.filter();
                 notifyDataSetChanged();
                 super.dismiss();

@@ -54,9 +54,16 @@ abstract class FoodItemAdapter extends BaseAdapter {
     public class FoodItemFilter extends Filter {
 
         private Set<Integer> locationFilters = new HashSet<Integer>();
+        private Set<Integer> statusFilters = new HashSet<Integer>();
         private String nameFilter = null;
         private int reminderFilter = 0; // figure this out
         private String categoryFilter = null; // figure this out
+
+        public void addStatusFilter(int statusFilter) { statusFilters.add(statusFilter); }
+
+        public void removeStatusFilter(int statusFilter) { statusFilters.remove(statusFilter); }
+
+        public void removeAllStatusFilters() { statusFilters = null; statusFilters = new HashSet<Integer>(); }
 
         public void addLocationFilter(int locationFilter) {
             locationFilters.add(locationFilter);
@@ -65,6 +72,8 @@ abstract class FoodItemAdapter extends BaseAdapter {
         public void removeLocationFilter(int locationFilter) {
             locationFilters.remove(locationFilter);
         }
+
+        public void removeAllLocationFilters() { locationFilters = null; locationFilters = new HashSet<Integer>(); }
 
         public void setNameFilter(String nameFilter) {
             this.nameFilter = nameFilter;
@@ -79,7 +88,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
         // when you add a new one
         private boolean matchesLocationFilter(FoodItem item) {
             if (locationFilters.size() == 0) return true;
-            for (Integer location : locationFilters) if (item.location == location) return true;
+            for (Integer location : locationFilters) if (item.getLocation() == location) return true;
             return false;
         }
 
@@ -87,6 +96,12 @@ abstract class FoodItemAdapter extends BaseAdapter {
             if (nameFilter == null || nameFilter.length() == 0) return true;
             String[] nameWords = item.type.name.split("\\s+");
             for (String nameWord : nameWords) if (nameWord.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
+            return false;
+        }
+
+        private boolean matchesStatusFilter(FoodItem item) {
+            if (statusFilters.size() == 0) return true;
+            for (Integer status : statusFilters) if (item.getStatus() == status) return true;
             return false;
         }
 
@@ -106,7 +121,9 @@ abstract class FoodItemAdapter extends BaseAdapter {
                 // add it if it matches both name and location filters
                 ArrayList<FoodItem> filteredStashList = new ArrayList<FoodItem>();
                 for (FoodItem item : itemList) {
-                    if (matchesLocationFilter(item) && matchesNameFilter(item)) filteredStashList.add(item);
+                    if (matchesLocationFilter(item) && matchesNameFilter(item) && matchesStatusFilter(item)) {
+                        filteredStashList.add(item);
+                    }
                 }
                 results.values = filteredStashList;
                 results.count = filteredStashList.size();
@@ -136,21 +153,35 @@ abstract class FoodItemAdapter extends BaseAdapter {
         name.setText(thisFoodItem.type.name);
         category.setText(thisFoodItem.type.category);
 
-        // Set up locations spinner
-        Spinner locations = (Spinner) detailCardView.findViewById(R.id.detail_card_location_vals);
-        String[] locationVals = {
-                Constants.locationFlagToString(Constants.LOC_LIST),
-                Constants.locationFlagToString(Constants.LOC_FRIDGE),
-                Constants.locationFlagToString(Constants.LOC_FREEZER),
-                Constants.locationFlagToString(Constants.LOC_PANTRY)};
-
+        // Set up status spinner and location spinner
+        Spinner statuses = (Spinner) detailCardView.findViewById(R.id.detail_card_status_vals);
+        final Spinner locations = (Spinner) detailCardView.findViewById(R.id.detail_card_location_vals);
+        String[] statusVals = Constants.statusStrings;
+        String[] locationVals = Constants.locationStrings;
+        // set adapters
+        statuses.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, statusVals));
         locations.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, locationVals));
-        locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        // get index to start statuses at
+        int index = 0;
+        for (int i = 0; i < statusVals.length; i++) {
+            if (Constants.statusToString(thisFoodItem.getStatus()).equals(statusVals[i])) index = i;
+        }
+        statuses.setSelection(index);
+        // get index to start locations at
+        index = 0;
+        for (int i = 0; i < locationVals.length; i++) {
+            if (Constants.locationToString(thisFoodItem.getLocation()).equals(locationVals[i])) index = i;
+        }
+        locations.setSelection(index);
+        // Hook up status onSelected
+        statuses.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("FoodItemAdapter", "in onItemSelected");
-                int newLocation = Constants.locationStringToFlag((String) parent.getItemAtPosition(position));
-                thisFoodItem.location = newLocation;
+                int newStatus = Constants.stringToStatus((String) parent.getItemAtPosition(position));
+                thisFoodItem.setStatus(newStatus);
+                // If the item is in the stash, it has a location, potentially
+                if (newStatus == Constants.STATUS_STASH) locations.setVisibility(View.VISIBLE);
+                else locations.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -158,12 +189,18 @@ abstract class FoodItemAdapter extends BaseAdapter {
 
             }
         });
-        // get index to start at
-        int index = 0;
-        for (int i = 0; i < locationVals.length; i++) {
-            if (Constants.locationFlagToString(thisFoodItem.location).equals(locationVals[i])) index = i;
-        }
-        locations.setSelection(index);
+        locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int newLocation = Constants.stringToLocation((String) parent.getItemAtPosition(position));
+                thisFoodItem.setLocation(newLocation);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         // Set up save() button
         Button saveButton = (Button) detailCardView.findViewById(R.id.detail_card_save_button);

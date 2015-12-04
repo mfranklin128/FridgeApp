@@ -14,73 +14,59 @@ import java.text.SimpleDateFormat;
  */
 public class Constants {
 
+    // FoodItem status
+    public static final int STATUS_LIST = 0;
+    public static final int STATUS_STASH = 1;
+
     public static final int LOC_FRIDGE = 0;
     public static final int LOC_FREEZER = 1;
-    public static final int LOC_LIST = 2;
-    public static final int LOC_PANTRY = 3;
+    public static final int LOC_PANTRY = 2;
+    public static final int LOC_NONE = 3;
 
-    public static String locationFlagToString(int location) {
+    public static final String[] locationStrings = {
+            "Fridge",
+            "Freezer",
+            "Pantry",
+            "-"
+    };
+
+    public static final String[] statusStrings = {
+            "Shopping List",
+            "Stash",
+    };
+
+    public static String statusToString(int status) {
+        switch (status) {
+            case STATUS_LIST: return "Shopping List";
+            case STATUS_STASH: return "Stash";
+            default: return "";
+        }
+    }
+
+    public static int stringToStatus(String status) {
+        if (status.equals("Shopping List")) return STATUS_LIST;
+        if (status.equals("Stash")) return STATUS_STASH;
+        return -1; // shouldn't happen
+    }
+
+    public static String locationToString(int location) {
         switch (location) {
             case LOC_FRIDGE: return "Fridge";
             case LOC_FREEZER: return "Freezer";
             case LOC_PANTRY: return "Pantry";
-            case LOC_LIST: return "Shopping List";
+            case LOC_NONE: return "-";
+            default: return "";
         }
-        return null; // should never return null
     }
 
-    public static int locationStringToFlag(String location) {
+    public static int stringToLocation(String location) {
         if (location.equals("Fridge")) return LOC_FRIDGE;
         if (location.equals("Freezer")) return LOC_FREEZER;
         if (location.equals("Pantry")) return LOC_PANTRY;
-        if (location.equals("Shopping List")) return LOC_LIST;
-        return -1; // should never
+        if (location.equals("-")) return LOC_NONE;
+        return LOC_NONE;
     }
 
     public static final SimpleDateFormat expDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-
-    public static final int VEGETABLE_GREEN = 0xA012AD2A;
-    public static final int MEAT_RED = 0xA0D68A59;
-    public static final int FRUIT_PURPLE = 0xA0421C52;
-    public static final int GRAIN_BROWN = 0xA0685642;
-    public static final int DAIRY_YELLOW = 0xA0F8E2B1;
-
-    public static void setColor(String category, View v) {
-        if (category.equals("Vegetable")) v.setBackgroundColor(Constants.VEGETABLE_GREEN);
-        else if (category.equals("Fruit")) v.setBackgroundColor(Constants.FRUIT_PURPLE);
-        else if (category.equals("Meat")) v.setBackgroundColor(Constants.MEAT_RED);
-        else if (category.equals("Dairy")) v.setBackgroundColor(Constants.DAIRY_YELLOW);
-        else if (category.equals("Grain")) v.setBackgroundColor(Constants.GRAIN_BROWN);
-    }
-
-    public static int getColor(String category) {
-        if (category.equals("Vegetable")) return Constants.VEGETABLE_GREEN;
-        else if (category.equals("Fruit")) return Constants.FRUIT_PURPLE;
-        else if (category.equals("Meat")) return Constants.MEAT_RED;
-        else if (category.equals("Dairy")) return Constants.DAIRY_YELLOW;
-        else if (category.equals("Grain")) return Constants.GRAIN_BROWN;
-        else return 0;
-    }
-
-    public static int convertDpToPixels(float dp, Context context){
-        Resources resources = context.getResources();
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dp,
-                resources.getDisplayMetrics()
-        );
-    }
-
-    public static float getDpHeight(Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
-        return dpHeight;
-    }
-
-    public static float getDpWidth(Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-        return dpWidth;
-    }
 }

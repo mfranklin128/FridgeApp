@@ -20,7 +20,8 @@ public class FoodItem {
 
     public FoodType type;
     public Date expDate;
-    public int location;
+    private int status;
+    private int location;
     private long id;
     SQLiteDatabase db;
 
@@ -28,19 +29,21 @@ public class FoodItem {
         this.db = db;
     }
 
-    public FoodItem(FoodType type, Date expDate, int location, long id, SQLiteDatabase db) {
+    public FoodItem(FoodType type, Date expDate, int status, int location, long id, SQLiteDatabase db) {
         this.type = type;
         this.expDate = expDate;
+        this.status = status;
         this.location = location;
         this.db = db;
         this.id = id;
     }
 
+    // Everything should have a value; we handle null/unset/non-existent values here, rather than
+    // in the DB
     public FoodItem(Cursor c, SQLiteDatabase db) {
         this.db = db;
-        for (String columnName : c.getColumnNames()) {
-            Log.d("FoodItem", "column name - " + columnName);
-        }
+
+        int statusIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_STATUS + "fooditem");
         int locationIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem");
         int expDateIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem");
         int idIndex = c.getColumnIndex(FoodItemEntry._ID+ "fooditem");
@@ -50,18 +53,13 @@ public class FoodItem {
         int foodTypeLocationIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype");
         int foodTypeIdIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem");
 
-        // We need a location, but a null expDate is permitted if the item is on the list
+        status = c.getInt(statusIndex);
         location = c.getInt(locationIndex);
         try {
-            if ((location == Constants.LOC_FRIDGE || location == Constants.LOC_FREEZER) && (expDateIndex >= 0)) {
-                expDate = Constants.expDateFormat.parse(c.getString(expDateIndex));
-            }
-            else {
-                expDate = null;
-            }
+            expDate = Constants.expDateFormat.parse(c.getString(expDateIndex));
         }
         catch (ParseException e) {
-            Log.e("FoodItem", "FoodItem creation error - ", e);
+            expDate = null; // if there's no date, we insert an empty string
         }
 
         id = c.getLong(idIndex);
@@ -77,28 +75,45 @@ public class FoodItem {
     public long save() {
         long result = -1;
         ContentValues vals = new ContentValues();
+
+        // Put the status
+        vals.put(FoodItemEntry.COLUMN_NAME_STATUS, status);
+
+        // Put the location
         vals.put(FoodItemEntry.COLUMN_NAME_LOCATION, location);
-        if (expDate != null) {
-            vals.put(FoodItemEntry.COLUMN_NAME_EXP_DATE, Constants.expDateFormat.format(expDate));
-        }
+
+        if (expDate != null) vals.put(FoodItemEntry.COLUMN_NAME_EXP_DATE, Constants.expDateFormat.format(expDate));
+        else vals.put(FoodItemEntry.COLUMN_NAME_EXP_DATE, "");
 
         long typeId = type.save();
         vals.put(FoodItemEntry.COLUMN_NAME_FOOD_TYPE, typeId);
-        Log.d("FoodItem", "loc = " + location + " typeID = " + typeId);
         if (id == -1) {
             result = db.insert(FoodItemEntry.TABLE_NAME, null, vals);
         }
         else {
-            Log.d("FoodItem", "doing update on " + id);
             result = db.update(FoodItemEntry.TABLE_NAME, vals, FoodItemEntry._ID + "=" + id, null);
         }
-        Log.d("FoodItem", "saving - " + result);
         return result;
     }
 
     public void delete() {
         int deleted = db.delete(FoodItemEntry.TABLE_NAME, FoodItemEntry._ID + "=?", new String[] {""+id});
-        Log.d("FoodItem", "num deleted - " + deleted);
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setLocation(int location) {
+        this.location = location;
+    }
+
+    public int getLocation() {
+        return location;
     }
 
     public static FoodItem[] getShoppingListItems(SQLiteDatabase db) {
@@ -107,6 +122,7 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
                 FoodItemEntry.COLUMN_NAME_EXP_DATE,
                 FoodTypeEntry._ID,
@@ -121,6 +137,7 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
@@ -132,7 +149,7 @@ public class FoodItem {
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_LIST;
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + "=" + Constants.STATUS_LIST;
 
         Cursor c = db.rawQuery(query, new String[]{});
         if (!c.moveToFirst()) {
@@ -156,6 +173,7 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
                 FoodItemEntry.COLUMN_NAME_EXP_DATE,
                 FoodTypeEntry._ID,
@@ -167,6 +185,7 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
@@ -178,9 +197,7 @@ public class FoodItem {
                         FoodTypeEntry.TABLE_NAME + " ON " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FRIDGE + " OR " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_FREEZER + " OR " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + "=" + Constants.LOC_PANTRY;
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + "=" + Constants.STATUS_STASH;
 
         Cursor c = db.rawQuery(query, new String[]{});
         if (!c.moveToFirst()) {
