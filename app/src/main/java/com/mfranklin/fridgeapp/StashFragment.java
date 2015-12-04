@@ -2,7 +2,9 @@ package com.mfranklin.fridgeapp;
 
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
@@ -20,6 +22,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.mfranklin.fridgeapp.adapters.StashAdapter;
 
 import java.util.ArrayList;
@@ -69,8 +72,16 @@ public class StashFragment extends Fragment {
         final StashAdapter.FoodItemFilter stashFilter = (StashAdapter.FoodItemFilter) stashAdapter.getFilter();
         stashList.setAdapter(stashAdapter);
 
-        // Hook up Filter row expansion
+        // Hook up Filters
         final View filterRow = toReturn.findViewById(R.id.stash_filter_row);
+        final Button fridgeHeader = (Button) toReturn.findViewById(R.id.stash_tab_fridge);
+        final Button freezerHeader = (Button) toReturn.findViewById(R.id.stash_tab_freezer);
+        final Button pantryHeader = (Button) toReturn.findViewById(R.id.stash_tab_pantry);
+        final Button otherHeader = (Button) toReturn.findViewById(R.id.stash_tab_other);
+        fridgeHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FRIDGE));
+        freezerHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FREEZER));
+        pantryHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_PANTRY));
+        otherHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_NONE));
         View filterExpansionButton = toReturn.findViewById(R.id.stash_filter_expand_button);
         filterExpansionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,72 +89,22 @@ public class StashFragment extends Fragment {
                 if (filterRow.getVisibility() == View.VISIBLE) {
                     filterRow.setVisibility(View.GONE);
                     ((Button) v).setText(">");
-                    stashFilter.removeAllLocationFilters();
+                    stashFilter.removeLocationFilter(Constants.LOC_FRIDGE);
+                    stashFilter.removeLocationFilter(Constants.LOC_FREEZER);
+                    stashFilter.removeLocationFilter(Constants.LOC_PANTRY);
+                    fridgeHeader.setTypeface(Typeface.DEFAULT);
+                    fridgeHeader.setBackgroundColor(Color.TRANSPARENT);
+                    freezerHeader.setTypeface(Typeface.DEFAULT);
+                    freezerHeader.setBackgroundColor(Color.TRANSPARENT);
+                    pantryHeader.setTypeface(Typeface.DEFAULT);
+                    pantryHeader.setBackgroundColor(Color.TRANSPARENT);
+                    otherHeader.setTypeface(Typeface.DEFAULT);
+                    otherHeader.setBackgroundColor(Color.TRANSPARENT);
                 }
                 else {
                     filterRow.setVisibility(View.VISIBLE);
                     ((Button) v).setText("<");
                 }
-            }
-        });
-        // Hook up fridge/freezer/pantry filter
-        final TextView fridgeHeader = (TextView) toReturn.findViewById(R.id.stash_tab_fridge);
-        final TextView freezerHeader = (TextView) toReturn.findViewById(R.id.stash_tab_freezer);
-        final TextView pantryHeader = (TextView) toReturn.findViewById(R.id.stash_tab_pantry);
-        fridgeHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (fridgeHeader.getTypeface() == Typeface.DEFAULT) { // using typeface as an on/off flag
-                    stashFilter.removeAllLocationFilters();
-                    stashFilter.addLocationFilter(Constants.LOC_FRIDGE);
-                    fridgeHeader.setTypeface(Typeface.DEFAULT_BOLD);
-                    freezerHeader.setTypeface(Typeface.DEFAULT);
-                    pantryHeader.setTypeface(Typeface.DEFAULT);
-                }
-                else {
-                    Log.d("StashFragment", "removing location filter");
-                    stashFilter.removeLocationFilter(Constants.LOC_FRIDGE);
-                    fridgeHeader.setTypeface(Typeface.DEFAULT);
-                }
-                stashFilter.filter("");
-            }
-        });
-
-        freezerHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("StashFragment", "somehow here");
-                if (freezerHeader.getTypeface() == Typeface.DEFAULT) {
-                    Log.d("StashFragment", "here");
-                    stashFilter.removeAllLocationFilters();
-                    stashFilter.addLocationFilter(Constants.LOC_FREEZER);
-                    freezerHeader.setTypeface(Typeface.DEFAULT_BOLD);
-                    fridgeHeader.setTypeface(Typeface.DEFAULT);
-                    pantryHeader.setTypeface(Typeface.DEFAULT);
-                }
-                else {
-                    stashFilter.removeLocationFilter(Constants.LOC_FREEZER);
-                    freezerHeader.setTypeface(Typeface.DEFAULT);
-                }
-                stashFilter.filter("");
-            }
-        });
-
-        pantryHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pantryHeader.getTypeface() == Typeface.DEFAULT) {
-                    stashFilter.removeAllLocationFilters();
-                    stashFilter.addLocationFilter(Constants.LOC_PANTRY);
-                    pantryHeader.setTypeface(Typeface.DEFAULT_BOLD);
-                    fridgeHeader.setTypeface(Typeface.DEFAULT);
-                    freezerHeader.setTypeface(Typeface.DEFAULT);
-                }
-                else {
-                    stashFilter.removeLocationFilter(Constants.LOC_PANTRY);
-                    pantryHeader.setTypeface(Typeface.DEFAULT);
-                }
-                stashFilter.filter("");
             }
         });
 
@@ -172,5 +133,32 @@ public class StashFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onStashFragmentInteraction();
+    }
+
+    private class LocationFilterOnClickListener implements View.OnClickListener {
+        private int location;
+        private boolean on = false;
+        private StashAdapter.FoodItemFilter filter;
+
+        public LocationFilterOnClickListener(StashAdapter.FoodItemFilter filter, int location) {
+            this.location = location;
+            this.filter = filter;
+        }
+
+        public void onClick(View v) {
+            Button b = (Button) v;
+            if (!on) {
+                filter.addLocationFilter(location);
+                b.setTypeface(Typeface.DEFAULT_BOLD);
+                b.setBackgroundColor(Color.LTGRAY);
+            }
+            else {
+                filter.removeLocationFilter(location);
+                b.setTypeface(Typeface.DEFAULT);
+                b.setBackgroundColor(Color.TRANSPARENT);
+            }
+            on = !on;
+            filter.filter();
+        }
     }
 }

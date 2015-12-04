@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -103,7 +104,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                detailCard.showAsDropDown(v, -5, 0);
+                detailCard.showAtLocation(v, Gravity.CENTER_HORIZONTAL, 0, 0);
             }
         });
         return rowView;

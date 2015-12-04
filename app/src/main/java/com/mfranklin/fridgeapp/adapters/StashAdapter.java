@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -26,6 +27,8 @@ import com.mfranklin.fridgeapp.R;
 public class StashAdapter extends FoodItemAdapter {
     public StashAdapter(Context context, FoodItem[] stashItems) {
         super(context, stashItems);
+        filter.addStatusFilter(Constants.STATUS_STASH);
+        filter.filter();
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -42,7 +45,7 @@ public class StashAdapter extends FoodItemAdapter {
         tv.setText(thisFoodItem.type.name);
 
         // hook up delete button
-        Button b = (Button) rowView.findViewById(R.id.stash_item_delete);
+        ImageButton b = (ImageButton) rowView.findViewById(R.id.stash_item_remove);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,7 +63,7 @@ public class StashAdapter extends FoodItemAdapter {
             }
 
             public void dismiss() {
-                Log.d("StashAdapter", "dismiss() being called");
+                Log.d("StashAdapter", "calling dismiss here");
                 filter.filter();
                 notifyDataSetChanged();
                 super.dismiss();

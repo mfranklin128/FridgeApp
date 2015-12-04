@@ -59,11 +59,12 @@ abstract class FoodItemAdapter extends BaseAdapter {
         private int reminderFilter = 0; // figure this out
         private String categoryFilter = null; // figure this out
 
-        public void addStatusFilter(int statusFilter) { statusFilters.add(statusFilter); }
+        public void addStatusFilter(int statusFilter) {
+            Log.d("FoodItemAdapter", "adding status filter = " + Constants.statusToString(statusFilter));
+            statusFilters.add(statusFilter);
+        }
 
         public void removeStatusFilter(int statusFilter) { statusFilters.remove(statusFilter); }
-
-        public void removeAllStatusFilters() { statusFilters = null; statusFilters = new HashSet<Integer>(); }
 
         public void addLocationFilter(int locationFilter) {
             locationFilters.add(locationFilter);
@@ -73,26 +74,26 @@ abstract class FoodItemAdapter extends BaseAdapter {
             locationFilters.remove(locationFilter);
         }
 
-        public void removeAllLocationFilters() { locationFilters = null; locationFilters = new HashSet<Integer>(); }
-
         public void setNameFilter(String nameFilter) {
             this.nameFilter = nameFilter;
         }
 
         private boolean hasNoConstraints() {
-            return locationFilters.size() == 0 && nameFilter == null;
+            return locationFilters.size() == 0 && nameFilter == null && statusFilters.size() == 0;
         }
 
         // will match any locations; up to the client code to handle AND vs ORing locations
         // e.g., if you only want to match one location, make sure you remove other constraints
         // when you add a new one
         private boolean matchesLocationFilter(FoodItem item) {
+            Log.d("FoodItemAdapter", "filtering on location");
             if (locationFilters.size() == 0) return true;
             for (Integer location : locationFilters) if (item.getLocation() == location) return true;
             return false;
         }
 
         private boolean matchesNameFilter(FoodItem item) {
+            Log.d("FoodItemAdapter", "filtering on name");
             if (nameFilter == null || nameFilter.length() == 0) return true;
             String[] nameWords = item.type.name.split("\\s+");
             for (String nameWord : nameWords) if (nameWord.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
@@ -100,6 +101,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
         }
 
         private boolean matchesStatusFilter(FoodItem item) {
+            Log.d("FoodItemAdapter", "filtering on status");
             if (statusFilters.size() == 0) return true;
             for (Integer status : statusFilters) if (item.getStatus() == status) return true;
             return false;

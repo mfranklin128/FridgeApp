@@ -20,7 +20,8 @@
             android:id="@+id/detail_card_name_val"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:gravity="right"/>
+            android:gravity="right"
+            android:textSize="17sp"/>
     </LinearLayout>
 
     <LinearLayout
