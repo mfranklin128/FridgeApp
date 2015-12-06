@@ -18,21 +18,29 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.GridLayout;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.mfranklin.fridgeapp.adapters.NewItemAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,18 +85,58 @@ public class NewItemFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View toReturn = inflater.inflate(R.layout.fragment_new_item, container, false);
 
-        FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
+        final FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
         FoodType[] foodTypes = FoodType.getAllFoodTypes(dbHelper.getWritableDatabase());
         if (foodTypes == null) foodTypes = new FoodType[0];
 
         final NewItemAdapter itemArrayAdapter = new NewItemAdapter(foodTypes, getActivity());
         ListView lv = (ListView) toReturn.findViewById(R.id.new_item_fragment_container);
         lv.setAdapter(itemArrayAdapter);
+
+        // Set up new type creation
+        final PopupWindow newTypeDialog = new PopupWindow(getActivity());
+        final View newTypeView = inflater.inflate(R.layout.create_type_card, null);
+        newTypeView.setBackgroundColor(Color.argb(0xf0, 0xb0, 0xb0, 0xb0));
+        // Set up new type creation dialog behavior
+        final Spinner categorySpinner = (Spinner) newTypeView.findViewById(R.id.new_type_category_vals);
+        final Spinner defaultLocationSpinner = (Spinner) newTypeView.findViewById(R.id.new_type_default_location_vals);
+        // set up category values
+        ArrayList<String> categories = new ArrayList<String>();
+        for (FoodType type: foodTypes) if (!categories.contains(type.category)) categories.add(type.category);
+        categorySpinner.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, categories));
+        // set up location values
+        defaultLocationSpinner.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, Constants.locationStrings));
+        // set up submit button
+        View submitButton = newTypeView.findViewById(R.id.new_type_submit_button);
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = ((EditText) newTypeView.findViewById(R.id.new_type_name_val)).getText().toString();
+                String category = categorySpinner.getSelectedItem().toString();
+                int defaultLocation = Constants.stringToLocation(defaultLocationSpinner.getSelectedItem().toString());
+                FoodType newType = new FoodType(name, category, defaultLocation, 1, -1, dbHelper.getWritableDatabase());
+                newType.save();
+                itemArrayAdapter.addItem(newType);
+                newTypeDialog.dismiss();
+            }
+        });
+        newTypeDialog.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
+        newTypeDialog.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+        newTypeDialog.setContentView(newTypeView);
+        newTypeDialog.setOutsideTouchable(true);
+        newTypeDialog.setFocusable(true);
+        ImageButton newTypeButton = (ImageButton) toReturn.findViewById(R.id.new_item_create_type);
+        newTypeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                newTypeDialog.showAsDropDown(v,0, 0);
+            }
+        });
 
         // Set up filter edit text
         EditText et = (EditText) toReturn.findViewById(R.id.new_item_search_text);
@@ -133,115 +181,5 @@ public class NewItemFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         public void onNewItemFragmentInteraction();
-    }
-
-    private class NewItemAdapter extends BaseAdapter implements Filterable {
-        private ArrayList<FoodType> foodTypes;
-        private ArrayList<FoodType> filteredFoodTypes;
-        private Context ctx;
-        private FoodTypeFilter filter;
-
-        public NewItemAdapter(FoodType[] foodTypes, Context context) {
-            super();
-            this.ctx = context;
-            this.foodTypes = new ArrayList<FoodType>(Arrays.asList(foodTypes));
-            this.filteredFoodTypes = new ArrayList<FoodType>();
-            filter = new FoodTypeFilter();
-            filter.filter("");
-        }
-
-        public Filter getFilter() { return filter; }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-
-            if (v == null) {
-                LayoutInflater inflater = (LayoutInflater) ((Activity) ctx).getLayoutInflater();
-                v = inflater.inflate(R.layout.new_item_food_type, null);
-            }
-
-            final FoodType type = filteredFoodTypes.get(position);
-
-            v.setTag(type);
-
-            TextView tv = (TextView) v.findViewById(R.id.new_item_food_type_name);
-            tv.setText(type.name);
-
-            // Hook up buttons
-            View listButton = v.findViewById(R.id.new_item_list_add);
-            listButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
-                    Date reminder = cal.getTime();
-
-                    FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_LIST, type.default_location, -1, type.db);
-                    newItem.save();
-                }
-            });
-
-            View addButton = v.findViewById(R.id.new_item_default_add);
-            addButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
-                    Date reminder = cal.getTime();
-
-                    FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_STASH, type.default_location, -1, type.db);
-                    newItem.save();
-                }
-            });
-
-            //Constants.setColor(type.category, v);
-
-            return v;
-        }
-
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public Object getItem(int position) {
-            return filteredFoodTypes.get(position);
-        }
-
-        public int getCount() {
-            return filteredFoodTypes.size();
-        }
-
-        private class FoodTypeFilter extends Filter {
-
-            public FoodTypeFilter() {
-
-            }
-
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                FilterResults results = new FilterResults();
-
-                if (constraint == null || constraint.length() == 0) {
-                    results.values = foodTypes;
-                    results.count = foodTypes.size();
-                }
-                else {
-                    ArrayList<FoodType> filteredFoodTypes = new ArrayList<FoodType>();
-                    for (FoodType type : foodTypes) {
-                        if (type.name.toLowerCase().contains(constraint.toString().toLowerCase())) {
-                            filteredFoodTypes.add(type);
-                        }
-                    }
-                    results.values = filteredFoodTypes;
-                    results.count = filteredFoodTypes.size();
-                }
-
-                return results;
-            }
-
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                filteredFoodTypes = (ArrayList<FoodType>) results.values;
-                notifyDataSetChanged();
-            }
-        }
     }
 }

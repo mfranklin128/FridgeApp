@@ -104,7 +104,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                detailCard.showAtLocation(v, Gravity.CENTER_HORIZONTAL, 0, 0);
+                detailCard.showAsDropDown(v, 0, 0);
             }
         });
         return rowView;
