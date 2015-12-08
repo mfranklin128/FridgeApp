@@ -1,4 +1,4 @@
-package com.mfranklin.fridgeapp;
+package com.mfranklin.fridgeapp.data_model;
 
 import android.content.Context;
 import android.content.res.Resources;

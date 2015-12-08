@@ -10,10 +10,11 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.mfranklin.fridgeapp.Constants;
-import com.mfranklin.fridgeapp.FoodItem;
-import com.mfranklin.fridgeapp.FoodType;
+import com.mfranklin.fridgeapp.data_model.Constants;
+import com.mfranklin.fridgeapp.data_model.FoodItem;
+import com.mfranklin.fridgeapp.data_model.FoodType;
 import com.mfranklin.fridgeapp.R;
+import com.mfranklin.fridgeapp.data_model.Reminder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,11 +61,14 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         listButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
-                Date reminder = cal.getTime();
+                Calendar cal = Calendar.getInstance();
 
-                FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_LIST, type.default_location, -1, type.db);
+                FoodItem newItem = new FoodItem(type, Constants.STATUS_LIST, type.default_location, -1, type.db);
                 newItem.save();
+
+                // Create the Reminder
+                Reminder reminder = new Reminder(newItem.getId(), cal.getTime(), type.default_reminder, -1, newItem.db);
+                reminder.save();
             }
         });
 
@@ -72,11 +76,14 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, type.default_reminder);
-                Date reminder = cal.getTime();
+                Calendar cal = Calendar.getInstance();
 
-                FoodItem newItem = new FoodItem(type, reminder, Constants.STATUS_STASH, type.default_location, -1, type.db);
+                FoodItem newItem = new FoodItem(type, Constants.STATUS_STASH, type.default_location, -1, type.db);
                 newItem.save();
+
+                // Create the Reminder
+                Reminder reminder = new Reminder(newItem.getId(), cal.getTime(), type.default_reminder, -1, newItem.db);
+                reminder.save();
             }
         });
 

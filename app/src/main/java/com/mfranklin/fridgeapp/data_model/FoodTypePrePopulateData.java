@@ -1,4 +1,4 @@
-package com.mfranklin.fridgeapp;
+package com.mfranklin.fridgeapp.data_model;
 
 public class FoodTypePrePopulateData {
 	public String[] names = new String[155];

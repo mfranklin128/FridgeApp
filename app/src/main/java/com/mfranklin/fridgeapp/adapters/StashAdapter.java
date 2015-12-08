@@ -1,24 +1,17 @@
 package com.mfranklin.fridgeapp.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import com.mfranklin.fridgeapp.Constants;
-import com.mfranklin.fridgeapp.FoodItem;
+import com.mfranklin.fridgeapp.data_model.Constants;
+import com.mfranklin.fridgeapp.data_model.FoodItem;
 import com.mfranklin.fridgeapp.R;
 
 /**

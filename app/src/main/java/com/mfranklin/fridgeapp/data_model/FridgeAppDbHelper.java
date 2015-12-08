@@ -1,4 +1,4 @@
-package com.mfranklin.fridgeapp;
+package com.mfranklin.fridgeapp.data_model;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -39,18 +39,30 @@ public class FridgeAppDbHelper extends SQLiteOpenHelper {
                     ") REFERENCES " + FridgeAppContract.FoodTypeEntry.TABLE_NAME + "(" + FridgeAppContract.FoodTypeEntry.COLUMN_NAME_NAME + ")" +
                     " )";
 
+    public static final String REMINDER_SQL_CREATE_STMTS =
+            "CREATE TABLE IF NOT EXISTS " + FridgeAppContract.ReminderEntry.TABLE_NAME + " (" +
+                    FridgeAppContract.ReminderEntry._ID + " INTEGER PRIMARY KEY," +
+                    FridgeAppContract.ReminderEntry.COLUMN_NAME_FOOD_ITEM + " NOT NULL," +
+                    FridgeAppContract.ReminderEntry.COLUMN_NAME_START_DATE + " NOT NULL," +
+                    FridgeAppContract.ReminderEntry.COLUMN_NAME_DURATION_DAYS + " INTEGER NOT NULL," +
+                    "FOREIGN KEY(" + FridgeAppContract.ReminderEntry.COLUMN_NAME_FOOD_ITEM +
+                    ") REFERENCES " + FridgeAppContract.FoodItemEntry.TABLE_NAME + "(" + FridgeAppContract.FoodItemEntry._ID + ")" +
+                    " )";
+
     public static final String FOOD_TYPE_SQL_DELETE_STMTS = "" +
             "DROP TABLE IF EXISTS " + FridgeAppContract.FoodTypeEntry.TABLE_NAME;
 
     public static final String FOOD_ITEM_SQL_DELETE_STMTS = "" +
             "DROP TABLE IF EXISTS " + FridgeAppContract.FoodItemEntry.TABLE_NAME;
 
-
+    public static final String REMINDER_SQL_DELETE_STMTS = "" +
+            "DROP TABLE IF EXISTS " + FridgeAppContract.ReminderEntry.TABLE_NAME;
 
     public void onCreate(SQLiteDatabase db) {
         Log.d("FridgeAppDb", "creating");
         db.execSQL(FOOD_TYPE_SQL_CREATE_STMTS);
         db.execSQL(FOOD_ITEM_SQL_CREATE_STMTS);
+        db.execSQL(REMINDER_SQL_CREATE_STMTS);
         if (dbIsEmpty(db)) {
             prePopulate(db);
         }
@@ -58,6 +70,7 @@ public class FridgeAppDbHelper extends SQLiteOpenHelper {
 
     // ONLY FOR DEVELOPMENT!
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL(REMINDER_SQL_DELETE_STMTS);
         db.execSQL(FOOD_ITEM_SQL_DELETE_STMTS);
         db.execSQL(FOOD_TYPE_SQL_DELETE_STMTS);
         onCreate(db);

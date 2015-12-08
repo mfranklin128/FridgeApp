@@ -1,28 +1,29 @@
 package com.mfranklin.fridgeapp.adapters;
 
 import android.content.Context;
-import android.database.DataSetObserver;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mfranklin.fridgeapp.Constants;
-import com.mfranklin.fridgeapp.FoodItem;
+import com.mfranklin.fridgeapp.data_model.Constants;
+import com.mfranklin.fridgeapp.data_model.FoodItem;
 import com.mfranklin.fridgeapp.R;
+import com.mfranklin.fridgeapp.data_model.Reminder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -158,6 +159,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
         // Set up status spinner and location spinner
         Spinner statuses = (Spinner) detailCardView.findViewById(R.id.detail_card_status_vals);
         final Spinner locations = (Spinner) detailCardView.findViewById(R.id.detail_card_location_vals);
+        final Spinner reminderPicker = (Spinner) detailCardView.findViewById(R.id.detail_card_reminder_length);
         String[] statusVals = Constants.statusStrings;
         String[] locationVals = Constants.locationStrings;
         // set adapters
@@ -182,8 +184,14 @@ abstract class FoodItemAdapter extends BaseAdapter {
                 int newStatus = Constants.stringToStatus((String) parent.getItemAtPosition(position));
                 thisFoodItem.setStatus(newStatus);
                 // If the item is in the stash, it has a location, potentially
-                if (newStatus == Constants.STATUS_STASH) locations.setVisibility(View.VISIBLE);
-                else locations.setVisibility(View.INVISIBLE);
+                if (newStatus == Constants.STATUS_STASH) {
+                    locations.setVisibility(View.VISIBLE);
+                    reminderPicker.setVisibility(View.VISIBLE);
+                }
+                else {
+                    locations.setVisibility(View.INVISIBLE);
+                    reminderPicker.setVisibility(View.INVISIBLE);
+                }
             }
 
             @Override
@@ -203,6 +211,40 @@ abstract class FoodItemAdapter extends BaseAdapter {
 
             }
         });
+        // Set up reminder text
+        Integer[] reminderVals = new Integer[30];
+        for (int i = 0; i < reminderVals.length; i++) {
+            reminderVals[i] = i+1; // display days 1 - 60
+        }
+        reminderPicker.setAdapter(new ArrayAdapter<Integer>(ctx, android.R.layout.simple_spinner_item, reminderVals));
+        // set up initial value, if any
+        Calendar today = Calendar.getInstance();
+        final int NUM_MILLIS_PER_DAY = 1000*60*60*24;
+        Reminder rem = Reminder.getFoodItemReminder(thisFoodItem.db, thisFoodItem);
+        if (rem == null) {
+            rem = new Reminder(thisFoodItem.db);
+            rem.setStartDate(Calendar.getInstance().getTime());
+            rem.setDurationDays(thisFoodItem.type.default_reminder);
+        }
+        Calendar startCal = Calendar.getInstance(); startCal.setTime(rem.getStartDate());
+        startCal.add(Calendar.DATE, rem.getDurationDays());
+        long endTime = startCal.getTime().getTime();
+
+        long difference = (endTime - today.getTime().getTime()) / (NUM_MILLIS_PER_DAY);
+        reminderPicker.setSelection((int) difference - 1); // this isn't great, but whatever, for now. don't worry about long vs int, and subtract 1 to get the index
+        // set up onSelected
+        final Reminder finalRem = rem;
+        reminderPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                finalRem.setDurationDays(position + 1);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         // Set up save() button
         Button saveButton = (Button) detailCardView.findViewById(R.id.detail_card_save_button);
@@ -210,7 +252,15 @@ abstract class FoodItemAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 thisFoodItem.save();
-
+                if (thisFoodItem.getStatus() == Constants.STATUS_STASH) {
+                    finalRem.save();
+                }
+                else {
+                    if (finalRem.getId() != -1) {
+                        // the reminder existed, but now the item is going on the list, so we delete it
+                        finalRem.delete();
+                    }
+                }
                 Toast confirm = Toast.makeText(ctx, "Updated", Toast.LENGTH_SHORT);
                 confirm.show();
             }

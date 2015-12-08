@@ -1,6 +1,7 @@
-package com.mfranklin.fridgeapp;
+package com.mfranklin.fridgeapp.data_model;
 
 import android.provider.BaseColumns;
+import android.widget.BaseAdapter;
 
 /**
  * Created by root on 9/12/15.
@@ -8,7 +9,7 @@ import android.provider.BaseColumns;
 public final class FridgeAppContract  {
     public FridgeAppContract() {}
 
-    public static final int DB_VERSION = 15;
+    public static final int DB_VERSION = 16;
 
     public static abstract class FoodTypeEntry implements BaseColumns {
         public static final String TABLE_NAME = "food_type";
@@ -24,5 +25,12 @@ public final class FridgeAppContract  {
         public static final String COLUMN_NAME_EXP_DATE = "exp_date";
         public static final String COLUMN_NAME_LOCATION = "food_item_location";
         public static final String COLUMN_NAME_STATUS = "food_item_status";
+    }
+
+    public static abstract class ReminderEntry implements BaseColumns {
+        public static final String TABLE_NAME = "reminder";
+        public static final String COLUMN_NAME_START_DATE = "start_date";
+        public static final String COLUMN_NAME_DURATION_DAYS = "duration";
+        public static final String COLUMN_NAME_FOOD_ITEM = "reminder_food_item";
     }
 }

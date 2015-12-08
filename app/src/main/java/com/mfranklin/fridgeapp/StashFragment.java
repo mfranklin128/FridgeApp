@@ -1,35 +1,23 @@
 package com.mfranklin.fridgeapp;
 
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.location.Location;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.mfranklin.fridgeapp.adapters.StashAdapter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.mfranklin.fridgeapp.data_model.Constants;
+import com.mfranklin.fridgeapp.data_model.FoodItem;
+import com.mfranklin.fridgeapp.data_model.FridgeAppDbHelper;
 
 /**
  *

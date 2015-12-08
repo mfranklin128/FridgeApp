@@ -1,10 +1,7 @@
 package com.mfranklin.fridgeapp.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +10,11 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mfranklin.fridgeapp.Constants;
-import com.mfranklin.fridgeapp.FoodItem;
+import com.mfranklin.fridgeapp.data_model.Constants;
+import com.mfranklin.fridgeapp.data_model.FoodItem;
 import com.mfranklin.fridgeapp.R;
+import com.mfranklin.fridgeapp.data_model.Reminder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -51,9 +47,11 @@ public class ShoppingListAdapter extends FoodItemAdapter {
             @Override
             public void onClick(View v) {
                 thisFoodItem.setLocation(thisFoodItem.type.default_location);
-                Calendar cal = Calendar.getInstance(); cal.add(Calendar.DATE, thisFoodItem.type.default_reminder);
-                Date reminder = cal.getTime();
+                thisFoodItem.setStatus(Constants.STATUS_STASH);
+                Calendar cal = Calendar.getInstance();
                 thisFoodItem.save();
+                Reminder reminder = new Reminder(thisFoodItem.getId(), cal.getTime(), thisFoodItem.type.default_reminder, -1, thisFoodItem.db);
+                reminder.save();
                 itemList.remove(thisFoodItem);
                 filteredItemList.remove(thisFoodItem);
                 notifyDataSetChanged();
