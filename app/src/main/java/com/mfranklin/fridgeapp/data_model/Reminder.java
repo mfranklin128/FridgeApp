@@ -113,6 +113,7 @@ public class Reminder {
         Reminder toReturn;
         String[] projection = {
                 FoodItemEntry._ID,
+                ReminderEntry._ID,
                 ReminderEntry.COLUMN_NAME_FOOD_ITEM,
                 ReminderEntry.COLUMN_NAME_DURATION_DAYS,
                 ReminderEntry.COLUMN_NAME_START_DATE
@@ -121,15 +122,17 @@ public class Reminder {
         String query =
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
+                        ReminderEntry.TABLE_NAME + "." + ReminderEntry._ID + " AS " + ReminderEntry._ID + "reminder" + ", " +
                         ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_FOOD_ITEM + " AS " + ReminderEntry.COLUMN_NAME_FOOD_ITEM + "reminder" + ", " +
                         ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_START_DATE + " AS " + ReminderEntry.COLUMN_NAME_START_DATE + "reminder" + ", " +
                         ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_DURATION_DAYS + " AS " + ReminderEntry.COLUMN_NAME_DURATION_DAYS + "reminder" +
                         " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
                         ReminderEntry.TABLE_NAME + " ON " +
                         ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_FOOD_ITEM + "=" +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID;
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " WHERE " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + "=?";
 
-        Cursor c = db.rawQuery(query, new String[] {});
+        Cursor c = db.rawQuery(query, new String[] {item.getId() + ""});
         if (!c.moveToFirst()) {
             return null;
         }
