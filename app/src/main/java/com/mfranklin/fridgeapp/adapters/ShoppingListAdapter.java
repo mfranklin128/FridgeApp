@@ -93,15 +93,15 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         }
         final RefreshPopupWindow detailCard = new RefreshPopupWindow(ctx);
         detailCard.setOutsideTouchable(true);
-        View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
         detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
         detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-        detailCard.setContentView(detailCardView);
         detailCard.setOutsideTouchable(true);
         detailCard.setFocusable(true);
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
+                detailCard.setContentView(detailCardView);
                 detailCard.showAsDropDown(v, 0, 0);
             }
         });
