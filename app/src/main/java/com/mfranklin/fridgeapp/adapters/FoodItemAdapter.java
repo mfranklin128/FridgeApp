@@ -61,7 +61,6 @@ abstract class FoodItemAdapter extends BaseAdapter {
         private String categoryFilter = null; // figure this out
 
         public void addStatusFilter(int statusFilter) {
-            Log.d("FoodItemAdapter", "adding status filter = " + Constants.statusToString(statusFilter));
             statusFilters.add(statusFilter);
         }
 
@@ -87,14 +86,12 @@ abstract class FoodItemAdapter extends BaseAdapter {
         // e.g., if you only want to match one location, make sure you remove other constraints
         // when you add a new one
         private boolean matchesLocationFilter(FoodItem item) {
-            Log.d("FoodItemAdapter", "filtering on location");
             if (locationFilters.size() == 0) return true;
             for (Integer location : locationFilters) if (item.getLocation() == location) return true;
             return false;
         }
 
         private boolean matchesNameFilter(FoodItem item) {
-            Log.d("FoodItemAdapter", "filtering on name");
             if (nameFilter == null || nameFilter.length() == 0) return true;
             String[] nameWords = item.type.name.split("\\s+");
             for (String nameWord : nameWords) if (nameWord.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
@@ -102,7 +99,6 @@ abstract class FoodItemAdapter extends BaseAdapter {
         }
 
         private boolean matchesStatusFilter(FoodItem item) {
-            Log.d("FoodItemAdapter", "filtering on status");
             if (statusFilters.size() == 0) return true;
             for (Integer status : statusFilters) if (item.getStatus() == status) return true;
             return false;
@@ -222,21 +218,24 @@ abstract class FoodItemAdapter extends BaseAdapter {
         final int NUM_MILLIS_PER_DAY = 1000*60*60*24;
         Reminder rem = Reminder.getFoodItemReminder(thisFoodItem.db, thisFoodItem);
         if (rem == null) {
+            Log.d("FoodItemAdapter", "didn't find reminder");
             rem = new Reminder(thisFoodItem.db);
             rem.setStartDate(Calendar.getInstance().getTime());
             rem.setDurationDays(thisFoodItem.type.default_reminder);
+            rem.setItemId(thisFoodItem.getId());
         }
         Calendar startCal = Calendar.getInstance(); startCal.setTime(rem.getStartDate());
         startCal.add(Calendar.DATE, rem.getDurationDays());
         long endTime = startCal.getTime().getTime();
 
         long difference = (endTime - today.getTime().getTime()) / (NUM_MILLIS_PER_DAY);
-        reminderPicker.setSelection((int) difference - 1); // this isn't great, but whatever, for now. don't worry about long vs int, and subtract 1 to get the index
+        reminderPicker.setSelection((int) difference); // this isn't great, but whatever, for now. don't worry about long vs int, and subtract 1 to get the index
         // set up onSelected
         final Reminder finalRem = rem;
         reminderPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("FoodItemAdapter", "setting reminder duration: " + (position+1));
                 finalRem.setDurationDays(position + 1);
             }
 
@@ -253,6 +252,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
             public void onClick(View v) {
                 thisFoodItem.save();
                 if (thisFoodItem.getStatus() == Constants.STATUS_STASH) {
+                    Log.d("FoodItemAdapter", "saving reminder duration: " + finalRem.getDurationDays());
                     finalRem.save();
                 }
                 else {

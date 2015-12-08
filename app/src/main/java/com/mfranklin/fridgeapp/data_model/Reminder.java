@@ -3,6 +3,7 @@ package com.mfranklin.fridgeapp.data_model;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.mfranklin.fridgeapp.data_model.FridgeAppContract.*;
 
@@ -42,10 +43,10 @@ public class Reminder {
         this.db = db;
 
         // all required
-        int startDateIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_START_DATE + "reminder");
-        int durationIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_DURATION_DAYS + "reminder");
-        int idIndex = c.getColumnIndex(ReminderEntry._ID + "reminder");
-        int foodItemIdIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_FOOD_ITEM + "reminder");
+        int startDateIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_START_DATE);
+        int durationIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_DURATION_DAYS);
+        int idIndex = c.getColumnIndex(ReminderEntry._ID);
+        int foodItemIdIndex = c.getColumnIndex(ReminderEntry.COLUMN_NAME_FOOD_ITEM);
 
         try {
             startDate = Constants.expDateFormat.parse(c.getString(startDateIndex));
@@ -56,6 +57,14 @@ public class Reminder {
         durationDays = c.getInt(durationIndex);
         id = c.getLong(idIndex);
         itemId = c.getLong(foodItemIdIndex);
+    }
+
+    public void setItemId(long itemId) {
+        this.itemId = itemId;
+    }
+
+    public long getItemId() {
+        return itemId;
     }
 
     public void setStartDate(Date startDate) {
@@ -92,6 +101,7 @@ public class Reminder {
         // Put the start date
         vals.put(ReminderEntry.COLUMN_NAME_START_DATE, Constants.expDateFormat.format(startDate));
         vals.put(ReminderEntry.COLUMN_NAME_DURATION_DAYS, durationDays);
+        Log.d("Reminder", "saving: " + itemId + ", " + Constants.expDateFormat.format(startDate) + ", " + durationDays);
 
         if (id == -1) {
             result = db.insert(ReminderEntry.TABLE_NAME, null, vals);
@@ -111,29 +121,23 @@ public class Reminder {
     // For now, we only have one reminder per food item, which we update
     public static Reminder getFoodItemReminder(SQLiteDatabase db, FoodItem item) {
         Reminder toReturn;
-        String[] projection = {
-                FoodItemEntry._ID,
+        String[] columns = {
                 ReminderEntry._ID,
                 ReminderEntry.COLUMN_NAME_FOOD_ITEM,
                 ReminderEntry.COLUMN_NAME_DURATION_DAYS,
                 ReminderEntry.COLUMN_NAME_START_DATE
         };
 
-        String query =
-                "SELECT " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
-                        ReminderEntry.TABLE_NAME + "." + ReminderEntry._ID + " AS " + ReminderEntry._ID + "reminder" + ", " +
-                        ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_FOOD_ITEM + " AS " + ReminderEntry.COLUMN_NAME_FOOD_ITEM + "reminder" + ", " +
-                        ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_START_DATE + " AS " + ReminderEntry.COLUMN_NAME_START_DATE + "reminder" + ", " +
-                        ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_DURATION_DAYS + " AS " + ReminderEntry.COLUMN_NAME_DURATION_DAYS + "reminder" +
-                        " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
-                        ReminderEntry.TABLE_NAME + " ON " +
-                        ReminderEntry.TABLE_NAME + "." + ReminderEntry.COLUMN_NAME_FOOD_ITEM + "=" +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " WHERE " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + "=?";
+        String selection = ReminderEntry.COLUMN_NAME_FOOD_ITEM + "=" + item.getId();
+        String[] selectionArgs = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+        String limit = "1";
 
-        Cursor c = db.rawQuery(query, new String[] {item.getId() + ""});
+        Cursor c = db.query(ReminderEntry.TABLE_NAME, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
         if (!c.moveToFirst()) {
+            Log.d("Reminder", "no results???");
             return null;
         }
         else {
