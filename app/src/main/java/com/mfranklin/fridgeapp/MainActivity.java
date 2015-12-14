@@ -9,7 +9,8 @@ public class MainActivity extends Activity
         implements
         ShoppingListFragment.OnFragmentInteractionListener,
         NewItemFragment.OnFragmentInteractionListener,
-        StashFragment.OnFragmentInteractionListener {
+        StashFragment.OnFragmentInteractionListener,
+        ReminderFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +42,9 @@ public class MainActivity extends Activity
         else if (id == R.id.action_fridge) {
             MyFragmentManager.displayStashFragment(this, false);
         }
-
+        else if (id == R.id.action_reminders) {
+            MyFragmentManager.displayReminderFragment(this, false);
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -54,6 +57,10 @@ public class MainActivity extends Activity
     }
 
     public void onStashFragmentInteraction() {
+
+    }
+
+    public void onReminderFragmentInteraction() {
 
     }
 }

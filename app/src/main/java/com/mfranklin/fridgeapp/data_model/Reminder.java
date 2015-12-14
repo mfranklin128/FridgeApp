@@ -59,6 +59,15 @@ public class Reminder {
         itemId = c.getLong(foodItemIdIndex);
     }
 
+    public int getDaysRemaining() {
+        final int NUM_MILLIS_PER_DAY = 1000*60*60*24;
+        Calendar startCal = Calendar.getInstance(); startCal.setTime(getStartDate());
+        startCal.add(Calendar.DATE, getDurationDays());
+        long endTime = startCal.getTime().getTime();
+        long nowTime = Calendar.getInstance().getTimeInMillis();
+        return ((int) (endTime - nowTime) / NUM_MILLIS_PER_DAY);
+    }
+
     public void setItemId(long itemId) {
         this.itemId = itemId;
     }
@@ -142,6 +151,40 @@ public class Reminder {
         }
         else {
             toReturn = new Reminder(c, db);
+            c.close();
+            return toReturn;
+        }
+    }
+
+    public static Reminder[] getAllReminders(SQLiteDatabase db) {
+        Reminder[] toReturn;
+        String[] columns = {
+                ReminderEntry._ID,
+                ReminderEntry.COLUMN_NAME_FOOD_ITEM,
+                ReminderEntry.COLUMN_NAME_DURATION_DAYS,
+                ReminderEntry.COLUMN_NAME_START_DATE
+        };
+
+        String selection = null;
+        String[] selectionArgs = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+        String limit = null;
+
+        Cursor c = db.query(ReminderEntry.TABLE_NAME, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
+        if (!c.moveToFirst()) {
+            Log.d("Reminder", "no results???");
+            return null;
+        }
+        else {
+            toReturn = new Reminder[c.getCount()];
+            int i = 0;
+            do {
+                toReturn[i] = new Reminder(c, db);
+                i++;
+            }
+            while (!c.isLast() && c.moveToNext());
             c.close();
             return toReturn;
         }

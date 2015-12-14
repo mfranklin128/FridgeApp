@@ -6,4 +6,6 @@
         android:orderInCategory="2" android:showAsAction="ifRoom|withText"/>
     <item android:id="@+id/action_fridge" android:title="Stash"
         android:orderInCategory="3" android:showAsAction="ifRoom|withText"/>
+    <item android:id="@+id/action_reminders" android:title="Rem"
+        android:orderInCategory="4" android:showAsAction="ifRoom|withText"/>
 </menu>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/reminder_three_days_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/reminder_three_days_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="> Next 3 days"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/reminder_three_days_cards"
+            android:background="@drawable/image_border">
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Today"
+                    android:textSize="10sp"
+                    android:textStyle="italic"/>
+                <ListView
+                    android:id="@+id/reminder_today_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="1" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Tomorrow"
+                    android:textSize="10sp"
+                    android:textStyle="italic"/>
+                <ListView
+                    android:id="@+id/reminder_tomorrow_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="1" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Day After"
+                    android:textSize="10sp"
+                    android:textStyle="italic"/>
+                <ListView
+                    android:id="@+id/reminder_day_after_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="1" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/reminder_seven_days_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/reminder_seven_days_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="> Next 7 days"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/reminder_seven_days_list"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/reminder_fourteen_days_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/reminder_fourteen_days_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="> Next 14 days"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/reminder_thirty_days_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/reminder_thirty_days_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="> Next 30 days"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+    </LinearLayout>
+</LinearLayout>

@@ -73,4 +73,25 @@ public class MyFragmentManager {
         ft.commit();
         return true;
     }
+
+    public static boolean displayReminderFragment(Activity a, boolean addToBack) {
+        FragmentManager fm  = a.getFragmentManager();
+
+        if (fm == null) return false;
+
+        Fragment placeholder = fm.findFragmentById(R.id.fragment_container);
+        FragmentTransaction ft = fm.beginTransaction();
+
+        if (placeholder != null) {
+            ft.replace(R.id.fragment_container, new ReminderFragment());
+        }
+        else {
+            ft.add(R.id.fragment_container, new ReminderFragment());
+        }
+        if (addToBack) {
+            ft.addToBackStack("stash_fragment");
+        }
+        ft.commit();
+        return true;
+    }
 }
