@@ -8,14 +8,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.mfranklin.fridgeapp.adapters.ReminderAdapter;
-import com.mfranklin.fridgeapp.adapters.ShoppingListAdapter;
-import com.mfranklin.fridgeapp.data_model.FoodItem;
 import com.mfranklin.fridgeapp.data_model.FridgeAppDbHelper;
 import com.mfranklin.fridgeapp.data_model.Reminder;
+
+import java.util.Arrays;
 
 /**
  * Created by root on 12/8/15.
@@ -49,18 +48,18 @@ public class ReminderFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View toReturn = inflater.inflate(R.layout.reminders, container, false);
+        View toReturn = inflater.inflate(R.layout.reminders_list, container, false);
 
         // Populate lists (set adapter)
         FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
-        Log.d("Shopping List", "about to get shopping list items");
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Reminder[] allReminders = Reminder.getAllReminders(db);
-        Log.d("Shopping List", "got shopping list items");
         if (allReminders == null)
             allReminders = new Reminder[0]; // ArrayAdapter complains if you give it a null array
-        Log.d("Shopping List", "making a new ShoppingListAdapter");
+        Arrays.sort(allReminders, Reminder.expirationOrderComparator());
         reminderAdapter = new ReminderAdapter(getActivity(), allReminders);
+        ListView reminderListView = (ListView) toReturn.findViewById(R.id.reminders_list);
+        reminderListView.setAdapter(reminderAdapter);
 
         return toReturn;
     }
@@ -87,11 +86,6 @@ public class ReminderFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onReminderFragmentInteraction();
-    }
-
-    // A helper method to set the heights of the reminder sections based on how much room is left for them
-    private void setWeights() {
-
     }
 
 }

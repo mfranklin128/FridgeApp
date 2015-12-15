@@ -66,9 +66,7 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
                 FoodItem newItem = new FoodItem(type, Constants.STATUS_LIST, type.default_location, -1, type.db);
                 newItem.save();
 
-                // Create the Reminder
-                Reminder reminder = new Reminder(newItem.getId(), cal.getTime(), type.default_reminder, -1, newItem.db);
-                reminder.save();
+                // We don't create a reminder when we add it to the list
             }
         });
 

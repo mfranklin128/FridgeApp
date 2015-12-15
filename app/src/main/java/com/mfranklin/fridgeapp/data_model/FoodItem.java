@@ -74,6 +74,7 @@ public class FoodItem {
         vals.put(FoodItemEntry.COLUMN_NAME_FOOD_TYPE, typeId);
         if (id == -1) {
             result = db.insert(FoodItemEntry.TABLE_NAME, null, vals);
+            id = result;
         }
         else {
             result = db.update(FoodItemEntry.TABLE_NAME, vals, FoodItemEntry._ID + "=" + id, null);
@@ -82,6 +83,9 @@ public class FoodItem {
     }
 
     public void delete() {
+        // get rid of any reminders tied to this item
+        Reminder reminder = Reminder.getFoodItemReminder(db, this);
+        if (reminder != null) reminder.delete();
         int deleted = db.delete(FoodItemEntry.TABLE_NAME, FoodItemEntry._ID + "=?", new String[] {""+id});
     }
 

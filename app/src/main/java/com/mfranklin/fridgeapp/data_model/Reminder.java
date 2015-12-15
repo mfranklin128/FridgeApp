@@ -9,6 +9,7 @@ import com.mfranklin.fridgeapp.data_model.FridgeAppContract.*;
 
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
@@ -20,7 +21,7 @@ public class Reminder {
     private int durationDays;
     private Date endDate;
     private long id;
-    private SQLiteDatabase db;
+    public SQLiteDatabase db;
 
     public Reminder(SQLiteDatabase db) {
         this.db = db;
@@ -59,13 +60,14 @@ public class Reminder {
         itemId = c.getLong(foodItemIdIndex);
     }
 
-    public int getDaysRemaining() {
-        final int NUM_MILLIS_PER_DAY = 1000*60*60*24;
+    // Convenience method
+    public long getDaysRemaining() {
+        final long NUM_MILLIS_PER_DAY = 1000*60*60*24;
         Calendar startCal = Calendar.getInstance(); startCal.setTime(getStartDate());
         startCal.add(Calendar.DATE, getDurationDays());
-        long endTime = startCal.getTime().getTime();
+        long endTime = startCal.getTimeInMillis();
         long nowTime = Calendar.getInstance().getTimeInMillis();
-        return ((int) (endTime - nowTime) / NUM_MILLIS_PER_DAY);
+        return ((endTime - nowTime) / NUM_MILLIS_PER_DAY);
     }
 
     public void setItemId(long itemId) {
@@ -110,7 +112,6 @@ public class Reminder {
         // Put the start date
         vals.put(ReminderEntry.COLUMN_NAME_START_DATE, Constants.expDateFormat.format(startDate));
         vals.put(ReminderEntry.COLUMN_NAME_DURATION_DAYS, durationDays);
-        Log.d("Reminder", "saving: " + itemId + ", " + Constants.expDateFormat.format(startDate) + ", " + durationDays);
 
         if (id == -1) {
             result = db.insert(ReminderEntry.TABLE_NAME, null, vals);
@@ -188,5 +189,14 @@ public class Reminder {
             c.close();
             return toReturn;
         }
+    }
+
+    public static Comparator<Reminder> expirationOrderComparator() {
+        return new Comparator<Reminder>() {
+            @Override
+            public int compare(Reminder lhs, Reminder rhs) {
+                return ((int) (lhs.getDaysRemaining() - rhs.getDaysRemaining()));
+            }
+        };
     }
 }
