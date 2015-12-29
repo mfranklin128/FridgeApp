@@ -1,22 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingRight="8dip">
-    <TextView
-        android:layout_width="wrap_content"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="4dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:paddingLeft="16dp"
-        android:padding="8dp"
-        android:id="@+id/stash_item_name" />
-    <ImageButton
-        android:id="@+id/stash_item_remove"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:padding="8dp"
-        android:src="@mipmap/ic_delete"
-        android:layout_alignParentRight="true"
-        android:background="@null"
-        android:clickable="true" />
-</RelativeLayout>
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/stash_item_button_column"
+            android:layout_width="36dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/stash_item_add_button"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:adjustViewBounds="true"
+                android:background="#00ffffff"
+                android:scaleType="fitXY"
+                android:src="@mipmap/ic_add" />
+
+            <ImageButton
+                android:id="@+id/stash_item_delete_button"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:adjustViewBounds="true"
+                android:background="#00ffffff"
+                android:scaleType="fitXY"
+                android:src="@mipmap/ic_delete" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/stash_item_name_column"
+            android:layout_width="fill_parent"
+            android:layout_height="72dp"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@id/stash_item_button_column"
+            android:orientation="vertical"
+            android:paddingLeft="4dp">
+
+            <TextView
+                android:id="@+id/stash_item_category"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_gravity="center_vertical|left"
+                android:layout_weight="1"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/stash_item_name"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_gravity="center_vertical|left"
+                android:layout_weight="2"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:id="@+id/stash_item_progress_bar_container"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="center_vertical|left"
+                android:layout_weight="1"
+                android:padding="4dp">
+
+                <LinearLayout
+                    android:id="@+id/stash_item_progress_bar_positive"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical|left"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/stash_item_progress_bar_positive_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical|left"
+                        android:background="#ff207d94"
+                        android:src="@drawable/blue_rectangle" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/stash_item_progress_bar_negative"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical|right"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical|right"
+                        android:background="#00000000"
+                        android:src="@drawable/transparent_rectangle" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:padding="4dp"
+        android:id="@+id/stash_item_details"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:padding="4dp"
+            android:background="@android:color/darker_gray"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status: "
+                android:textSize="16sp"/>
+            <Spinner
+                android:id="@+id/stash_item_details_status_val"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:spinnerMode="dialog"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Location: "
+                android:textSize="16sp"/>
+            <Spinner
+                android:id="@+id/stash_item_details_location_val"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:spinnerMode="dialog"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reminder: "
+                android:textSize="16sp"/>
+            <Spinner
+                android:id="@+id/stash_item_details_reminder_length"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:spinnerMode="dialog"
+                android:dropDownWidth="wrap_content"/>
+        </LinearLayout>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/borderlessButtonStyle"
+            android:text="Save"
+            android:id="@+id/detail_card_save_button"/>
+    </LinearLayout>
+</LinearLayout>
