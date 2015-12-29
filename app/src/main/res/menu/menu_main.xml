@@ -1,11 +1,28 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_shopping_list" android:title="List"
-        android:orderInCategory="1" android:showAsAction="ifRoom|withText"/>
-    <item android:id="@+id/action_add_item" android:title="Add"
-        android:orderInCategory="2" android:showAsAction="ifRoom|withText"/>
-    <item android:id="@+id/action_fridge" android:title="Stash"
-        android:orderInCategory="3" android:showAsAction="ifRoom|withText"/>
-    <item android:id="@+id/action_reminders" android:title="Rem"
-        android:orderInCategory="4" android:showAsAction="ifRoom|withText"/>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_shopping_list"
+        android:icon="@mipmap/ic_shopping_basket"
+        android:orderInCategory="1"
+        android:title="Shopping"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_add_item"
+        android:icon="@mipmap/ic_library"
+        android:orderInCategory="2"
+        android:title="Library"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_fridge"
+        android:icon="@mipmap/ic_stash"
+        android:orderInCategory="3"
+        android:title="Stash"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_reminders"
+        android:orderInCategory="4"
+        android:title="Reminders"
+        app:showAsAction="never" />
 </menu>
