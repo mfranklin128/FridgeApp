@@ -3,23 +3,31 @@ package com.mfranklin.kitchnik.adapters;
 import android.app.ActionBar;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mfranklin.kitchnik.data_model.Constants;
 import com.mfranklin.kitchnik.data_model.FoodItem;
 import com.mfranklin.kitchnik.R;
 import com.mfranklin.kitchnik.data_model.Reminder;
 
+import java.util.Calendar;
 import java.util.HashMap;
 
 /**
@@ -34,27 +42,53 @@ public class StashAdapter extends FoodItemAdapter {
     private static final int VIEW_TYPE_EXPANDED_SOME_PROGRESS = 4;
     private static final int VIEW_TYPE_EXPANDED_FULL_PROGRESS = 5;
 
-    private HashMap<Integer, Integer> positionToViewType;
+    private int expandedPosition = -1;
+    private View expandedView = null;
+    private HashMap<FoodItem, Reminder> itemToReminder = new HashMap<>(); // to cache reminders
 
     public StashAdapter(Context context, FoodItem[] stashItems) {
         super(context, stashItems);
         filter.addStatusFilter(Constants.STATUS_STASH);
         filter.filter();
 
-        positionToViewType = new HashMap<>();
+        // build the reminders cache now, so it doesn't have to query DB later
+        for (FoodItem item : stashItems) {
+            itemToReminder.put(item, Reminder.getFoodItemReminder(item.db, item));
+        }
     }
 
     public int getViewTypeCount() {
-        return 6;
+        return 6; // sure.
     }
 
     public int getItemViewType(int position) {
-        Integer type = positionToViewType.get(position);
-        if (type != null) return type;
+        FoodItem item = filteredItemList.get(position);
+        Reminder rem = itemToReminder.get(item);
+        if (rem == null) {
+            rem = Reminder.getFoodItemReminder(item.db, item);
+            itemToReminder.put(item, rem);
+        }
+        boolean isExpanded = (expandedPosition == position);
+        if (isExpanded) {
+            if (rem.getDaysRemaining() > 10)
+                return VIEW_TYPE_EXPANDED_NO_PROGRESS;
+            if (rem.getDaysRemaining() <= 10 && rem.getDaysRemaining() > 0)
+                return VIEW_TYPE_EXPANDED_SOME_PROGRESS;
+            if (rem.getDaysRemaining() <= 0)
+                return VIEW_TYPE_EXPANDED_FULL_PROGRESS;
+        }
+        else {
+            if (rem.getDaysRemaining() > 10)
+                return VIEW_TYPE_NORMAL_NO_PROGRESS;
+            if (rem.getDaysRemaining() <= 10 && rem.getDaysRemaining() > 0)
+                return VIEW_TYPE_NORMAL_SOME_PROGRESS;
+            if (rem.getDaysRemaining() <= 0)
+                return VIEW_TYPE_NORMAL_FULL_PROGRESS;
+        }
         return VIEW_TYPE_NORMAL_SOME_PROGRESS;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final FoodItem thisFoodItem = filteredItemList.get(position);
 
@@ -73,6 +107,10 @@ public class StashAdapter extends FoodItemAdapter {
             holder.nProgress = (LinearLayout) rowView.findViewById(R.id.stash_item_progress_bar_negative);
             holder.progressImage = (ImageView) rowView.findViewById(R.id.stash_item_progress_bar_positive_image);
             holder.details = rowView.findViewById(R.id.stash_item_details);
+            holder.statuses = (Spinner) rowView.findViewById(R.id.stash_item_details_status_val);
+            holder. locations = (Spinner) rowView.findViewById(R.id.stash_item_details_location_val);
+            holder.reminderPicker = (Spinner) rowView.findViewById(R.id.stash_item_details_reminder_length);
+            holder.saveButton = (Button) rowView.findViewById(R.id.detail_card_save_button);
             rowView.setTag(holder);
         }
 
@@ -127,43 +165,35 @@ public class StashAdapter extends FoodItemAdapter {
             holder.progressImage.setImageResource(R.drawable.red_rectangle);
         }
 
-        final int finalPosition = position;
+        // fill in details
+
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View details = v.findViewById(R.id.stash_item_details);
-                int viewType = getItemViewType(finalPosition);
-                if (details.getVisibility() == View.GONE) {
-                    details.setVisibility(View.VISIBLE);
-                    if (viewType == VIEW_TYPE_NORMAL_NO_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_EXPANDED_NO_PROGRESS);
-                    }
-                    if (viewType == VIEW_TYPE_NORMAL_SOME_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_EXPANDED_SOME_PROGRESS);
-                    }
-                    if (viewType == VIEW_TYPE_NORMAL_FULL_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_EXPANDED_FULL_PROGRESS);
-                    }
+                if (position == expandedPosition) { // we're closing
+                    details.setVisibility(View.GONE);
+                    v.setElevation(0);
+                    v.setBackgroundResource(0);
+                    expandedPosition = -1;
+                    expandedView = null;
                 }
                 else {
-                    details.setVisibility(View.GONE);
-                    if (viewType == VIEW_TYPE_EXPANDED_NO_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_NORMAL_NO_PROGRESS);
+                    details.setVisibility(View.VISIBLE);
+                    v.setElevation(20.0f);
+                    v.setBackgroundResource(R.drawable.grey_rectangle);
+                    if (expandedPosition != -1) {
+                        View expandedDetails = expandedView.findViewById(R.id.stash_item_details);
+                        expandedDetails.setVisibility(View.GONE);
+                        expandedView.setElevation(0);
+                        expandedView.setBackgroundResource(0);
                     }
-                    if (viewType == VIEW_TYPE_EXPANDED_SOME_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_NORMAL_SOME_PROGRESS);
-                    }
-                    if (viewType == VIEW_TYPE_EXPANDED_FULL_PROGRESS) {
-                        positionToViewType.put(finalPosition, VIEW_TYPE_NORMAL_FULL_PROGRESS);
-                    }
+                    expandedPosition = position;
+                    expandedView = v;
                 }
             }
         });
 
-        // store the initial view type
-        if (rem.getDaysRemaining() > 10) positionToViewType.put(position, VIEW_TYPE_NORMAL_NO_PROGRESS);
-        if (rem.getDaysRemaining() <= 10) positionToViewType.put(position, VIEW_TYPE_NORMAL_SOME_PROGRESS);
-        if (rem.getDaysRemaining() <= 0) positionToViewType.put(position, VIEW_TYPE_NORMAL_FULL_PROGRESS); // this will overwrite the previous insertion
         return rowView;
     }
 
@@ -176,5 +206,9 @@ public class StashAdapter extends FoodItemAdapter {
         LinearLayout nProgress;
         ImageView progressImage;
         View details;
+        Spinner statuses;
+        Spinner locations;
+        Spinner reminderPicker;
+        Button saveButton;
     }
 }

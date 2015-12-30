@@ -88,7 +88,10 @@
             android:id="@+id/stash_items"
             android:layout_below="@+id/stash_filters"
             android:divider="@drawable/stash_divider"
-            android:dividerHeight="4dp">
+            android:dividerHeight="4dp"
+            android:padding="4dp"
+            android:clipToPadding="false"
+            android:clipChildren="false">
         </ListView>
     </RelativeLayout>
 </FrameLayout>
