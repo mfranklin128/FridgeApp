@@ -88,6 +88,10 @@ public class Reminder {
 
     public void setDurationDays(int durationDays) {
         this.durationDays = durationDays;
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(getStartDate());
+        startCal.add(Calendar.DATE, durationDays);
+        endDate = startCal.getTime();
     }
 
     public int getDurationDays() {

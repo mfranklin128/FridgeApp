@@ -1,33 +1,52 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="com.mfranklin.kitchnik.NewItemFragment">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mfranklin.kitchnik.NewItemFragment"
+    android:elevation="2dp">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/new_item_header"
-            android:background="@drawable/image_border">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
             <EditText
                 android:id="@+id/new_item_search_text"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="left"
-                android:layout_weight="1" />
-            <ImageButton
-                android:layout_width="wrap_content"
+                android:layout_weight="2"
+                android:hint="search" />
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/new_item_create_type"
-                style="?android:attr/borderlessButtonStyle"
-                android:src="@mipmap/ic_add" />
+                android:layout_weight="1"
+                android:elevation="2dp">
+
+                <Button
+                    android:id="@+id/stash_filter_expand_button"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:gravity="left"
+                    android:clickable="true"
+                    android:textSize="20sp"
+                    android:text=">" />
+            </LinearLayout>
         </LinearLayout>
+
         <ListView
             android:id="@+id/new_item_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_item_header"
-            />
+            android:layout_below="@+id/new_item_header" />
     </RelativeLayout>
 </FrameLayout>

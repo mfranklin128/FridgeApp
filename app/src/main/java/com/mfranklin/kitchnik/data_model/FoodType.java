@@ -51,6 +51,10 @@ public class FoodType {
 
     }
 
+    public long getId() {
+        return id;
+    }
+
     public long save() {
         long result = -1;
         ContentValues vals = new ContentValues();

@@ -20,7 +20,7 @@ public class Constants {
             "Fridge",
             "Freezer",
             "Pantry",
-            "-"
+            "Stash"
     };
 
     public static final String[] statusStrings = {
@@ -47,7 +47,7 @@ public class Constants {
             case LOC_FRIDGE: return "Fridge";
             case LOC_FREEZER: return "Freezer";
             case LOC_PANTRY: return "Pantry";
-            case LOC_NONE: return "-";
+            case LOC_NONE: return "Stash";
             default: return "";
         }
     }
@@ -56,7 +56,7 @@ public class Constants {
         if (location.equals("Fridge")) return LOC_FRIDGE;
         if (location.equals("Freezer")) return LOC_FREEZER;
         if (location.equals("Pantry")) return LOC_PANTRY;
-        if (location.equals("-")) return LOC_NONE;
+        if (location.equals("Stash")) return LOC_NONE;
         return LOC_NONE;
     }
 

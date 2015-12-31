@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -78,12 +79,17 @@ public class StashAdapter extends FoodItemAdapter {
                 return VIEW_TYPE_EXPANDED_FULL_PROGRESS;
         }
         else {
-            if (rem.getDaysRemaining() > 10)
+            if (rem.getDaysRemaining() > 10) {
+                //Log.d("StashAdapter", "returning normal no progress, " + item.type.name);
                 return VIEW_TYPE_NORMAL_NO_PROGRESS;
-            if (rem.getDaysRemaining() <= 10 && rem.getDaysRemaining() > 0)
+            }
+            if (rem.getDaysRemaining() <= 10 && rem.getDaysRemaining() > 0) {
+                //Log.d("StashAdapter", "returning normal some progress, " + item.type.name);
                 return VIEW_TYPE_NORMAL_SOME_PROGRESS;
-            if (rem.getDaysRemaining() <= 0)
+            }
+            if (rem.getDaysRemaining() <= 0) {
                 return VIEW_TYPE_NORMAL_FULL_PROGRESS;
+            }
         }
         return VIEW_TYPE_NORMAL_SOME_PROGRESS;
     }
@@ -166,26 +172,108 @@ public class StashAdapter extends FoodItemAdapter {
         }
 
         // fill in details
+        // status and location pickers
+        holder.statuses.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_dropdown_item, Constants.statusStrings));
+        holder.locations.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_dropdown_item, Constants.locationStrings));
+        int statusIndex, locationIndex, i = 0;
+        while (i < Constants.statusStrings.length) {
+            if (Constants.statusToString(thisFoodItem.getStatus()).equals(Constants.statusStrings[i])) break;
+            i++;
+        }
+        statusIndex = i;
+        i = 0;
+        while (i < Constants.locationStrings.length) {
+            if (Constants.locationToString(thisFoodItem.getLocation()).equals(Constants.locationStrings[i])) break;
+            i++;
+        }
+        locationIndex = i;
+        holder.statuses.setSelection(statusIndex);
+        holder.locations.setSelection(locationIndex);
+        final View locationsRef = holder.locations;
+        final View reminderRef = holder.reminderPicker;
+        holder.statuses.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int newStatus = Constants.stringToStatus((String) parent.getItemAtPosition(position));
+                thisFoodItem.setStatus(newStatus);
+                if (newStatus == Constants.STATUS_STASH) {
+                    locationsRef.setVisibility(View.VISIBLE);
+                    reminderRef.setVisibility(View.VISIBLE);
+                } else {
+                    locationsRef.setVisibility(View.INVISIBLE);
+                    reminderRef.setVisibility(View.INVISIBLE);
+                }
+            }
 
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        holder.locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int newLocation = Constants.stringToLocation((String) parent.getItemAtPosition(position));
+                thisFoodItem.setLocation(newLocation);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        Integer[] reminderVals = new Integer[(int) Math.max(30, rem.getDaysRemaining() + 1)];
+        for (i = 0; i < reminderVals.length; i++) reminderVals[i] = i;
+        holder.reminderPicker.setAdapter(new ArrayAdapter<Integer>(ctx, android.R.layout.simple_spinner_dropdown_item, reminderVals));
+        holder.reminderPicker.setSelection((int) rem.getDaysRemaining());
+        final Reminder remRef = rem;
+        holder.reminderPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int oldDuration = remRef.getDurationDays();
+                int diff = position - (int) remRef.getDaysRemaining();
+                remRef.setDurationDays(oldDuration + diff); // automatically updates endDate
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // set up save button
+        holder.saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                thisFoodItem.save();
+                if (thisFoodItem.getStatus() == Constants.STATUS_STASH) {
+                    remRef.save();
+                }
+                else {
+                    if (remRef.getId() != -1) {
+                        remRef.delete();
+                    }
+                }
+                notifyDataSetChanged();
+                notifyDataSetInvalidated();
+                itemToReminder.put(thisFoodItem, remRef);
+            }
+        });
+
+        // set up expand/contract functionality
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("StashAdapter", "is this where we crash?");
                 View details = v.findViewById(R.id.stash_item_details);
                 if (position == expandedPosition) { // we're closing
                     details.setVisibility(View.GONE);
-                    v.setElevation(0);
                     v.setBackgroundResource(0);
                     expandedPosition = -1;
                     expandedView = null;
                 }
                 else {
                     details.setVisibility(View.VISIBLE);
-                    v.setElevation(20.0f);
                     v.setBackgroundResource(R.drawable.grey_rectangle);
                     if (expandedPosition != -1) {
                         View expandedDetails = expandedView.findViewById(R.id.stash_item_details);
                         expandedDetails.setVisibility(View.GONE);
-                        expandedView.setElevation(0);
                         expandedView.setBackgroundResource(0);
                     }
                     expandedPosition = position;

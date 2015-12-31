@@ -244,6 +244,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
             }
         });
 
+
         // Set up save() button
         Button saveButton = (Button) detailCardView.findViewById(R.id.detail_card_save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {

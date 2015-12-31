@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -107,13 +108,6 @@ public class NewItemFragment extends Fragment {
         newTypeDialog.setContentView(newTypeView);
         newTypeDialog.setOutsideTouchable(true);
         newTypeDialog.setFocusable(true);
-        ImageButton newTypeButton = (ImageButton) toReturn.findViewById(R.id.new_item_create_type);
-        newTypeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                newTypeDialog.showAsDropDown(v,0, 0);
-            }
-        });
 
         // Set up filter edit text
         EditText et = (EditText) toReturn.findViewById(R.id.new_item_search_text);

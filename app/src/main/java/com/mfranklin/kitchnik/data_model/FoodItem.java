@@ -243,4 +243,50 @@ public class FoodItem {
         }
     }
 
+    public static FoodItem[] getFoodItemsForType(SQLiteDatabase db, FoodType type) {
+        FoodItem[] toReturn;
+        String[] projection = {
+                FoodItemEntry._ID,
+                FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_STATUS,
+                FoodItemEntry.COLUMN_NAME_LOCATION,
+                FoodTypeEntry._ID,
+                FoodTypeEntry.COLUMN_NAME_NAME,
+                FoodTypeEntry.COLUMN_NAME_CATEGORY
+        };
+
+        String query =
+                "SELECT " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER + "foodtype" + ", " +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + " AS " + FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype" +
+                        " FROM " + FoodItemEntry.TABLE_NAME + " INNER JOIN " +
+                        FoodTypeEntry.TABLE_NAME + " ON " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" +
+                        FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " WHERE " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "=" + type.getId();
+
+        Cursor c = db.rawQuery(query, new String[]{});
+        if (!c.moveToFirst()) {
+            return null; // no results
+        }
+        else {
+            toReturn = new FoodItem[c.getCount()];
+            int i = 0;
+            do {
+                toReturn[i] = new FoodItem(c, db);
+                i++;
+            }
+            while (!c.isLast() && c.moveToNext());
+            c.close();
+            return toReturn;
+        }
+    }
+
 }
