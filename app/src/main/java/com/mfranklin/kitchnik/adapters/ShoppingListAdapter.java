@@ -1,7 +1,11 @@
 package com.mfranklin.kitchnik.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,16 +96,15 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         }
         final RefreshPopupWindow detailCard = new RefreshPopupWindow(ctx);
         detailCard.setOutsideTouchable(true);
-        detailCard.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
-        detailCard.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-        detailCard.setOutsideTouchable(true);
+        detailCard.setWidth((int) (parent.getWidth() * 0.88));
+        detailCard.setHeight((int) (parent.getHeight() * 0.70));
         detailCard.setFocusable(true);
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
                 detailCard.setContentView(detailCardView);
-                detailCard.showAsDropDown(v, 0, 0);
+                detailCard.showAtLocation(v, Gravity.CENTER, 0, 0);
             }
         });
         return rowView;

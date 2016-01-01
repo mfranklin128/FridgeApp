@@ -2,6 +2,8 @@ package com.mfranklin.kitchnik.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,9 +66,10 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         }
     }
 
+
     public Filter getFilter() { return filter; }
 
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, final ViewGroup parent) {
         View v = convertView;
 
         if (v == null) {
@@ -85,13 +88,24 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
 
-                FoodItem newItem = new FoodItem(type, Constants.STATUS_LIST, type.default_location, -1, type.db);
+                final FoodItem newItem = new FoodItem(type, Constants.STATUS_LIST, type.default_location, -1, type.db);
                 newItem.save();
+
+                String message = "Added " + newItem.type.name + " to shopping list";
+                Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) { // undo
+                        newItem.delete();
+                        ArrayList<FoodItem> stashItems = typeToListItems.get(type);
+                        stashItems.remove(newItem);
+                        typeToListItems.put(type, stashItems);
+                        notifyDataSetChanged();
+                    }
+                }).show();
+
                 ArrayList<FoodItem> listItems = typeToListItems.get(type);
                 listItems.add(newItem);
                 typeToListItems.put(type, listItems);
-                Toast created = Toast.makeText(ctx, "Added " + newItem.type.name + " to shopping list", Toast.LENGTH_SHORT);
-                created.show();
                 // We don't create a reminder when we add it to the list
                 notifyDataSetChanged();
             }
@@ -102,11 +116,20 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
 
-                FoodItem newItem = new FoodItem(type, Constants.STATUS_STASH, type.default_location, -1, type.db);
+                final FoodItem newItem = new FoodItem(type, Constants.STATUS_STASH, type.default_location, -1, type.db);
                 newItem.save();
 
-                Toast created = Toast.makeText(ctx, "Added " + newItem.type.name + " to " + Constants.locationToString(newItem.getLocation()), Toast.LENGTH_SHORT);
-                created.show();
+                String message = "Added " + newItem.type.name + " to " + Constants.locationToString(newItem.getLocation());
+                Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) { // undo
+                        newItem.delete();
+                        ArrayList<FoodItem> stashItems = typeToStashItems.get(type);
+                        stashItems.remove(newItem);
+                        typeToStashItems.put(type, stashItems);
+                        notifyDataSetChanged();
+                    }
+                }).show();
                 // Create the Reminder
                 Reminder reminder = new Reminder(newItem.getId(), cal.getTime(), type.default_reminder, -1, newItem.db);
                 reminder.save();
@@ -122,14 +145,18 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         TextView listCountView = (TextView) v.findViewById(R.id.new_item_add_list_counter);
         int listCount = typeToListItems.get(type).size();
         if (listCount > 0) {
-            listCountView.setVisibility(View.VISIBLE);
             listCountView.setText("" + listCount);
+        }
+        else {
+            listCountView.setText(" ");
         }
         TextView stashCountView = (TextView) v.findViewById(R.id.new_item_add_stash_counter);
         int stashCount = typeToStashItems.get(type).size();
         if (stashCount > 0) {
-            stashCountView.setVisibility(View.VISIBLE);
             stashCountView.setText("" + stashCount);
+        }
+        else {
+            stashCountView.setText(" ");
         }
         // Fill in details
         TextView name = (TextView) v.findViewById(R.id.new_item_food_type_name);
@@ -156,24 +183,63 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         notifyDataSetChanged();
     }
 
-    private class FoodTypeFilter extends Filter {
+    public class FoodTypeFilter extends Filter {
 
+        private String nameFilter = null;
+        private String categoryFilter = null;
         public FoodTypeFilter() {
 
+        }
+
+        public void filter() {
+            filter("");
+        }
+
+        public void setNameFilter(String filter) {
+            nameFilter = filter;
+        }
+
+        public void removeNameFilter() {
+            nameFilter = null;
+        }
+
+        public void setCategoryFilter(String category) {
+            categoryFilter = category;
+        }
+
+        public void removeCategoryFilter() {
+            categoryFilter = null;
+        }
+
+        private boolean hasNoConstraints() {
+            return (nameFilter == null && categoryFilter == null);
+        }
+
+        private boolean matchesNameFilter(FoodType type) {
+            if (nameFilter == null || nameFilter.length() == 0) return true;
+            String[] words = type.name.split("\\s+");
+            for (String word : words) if (word.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
+            return false;
+        }
+
+        private boolean matchesCategoryFilter(FoodType type) {
+            if (categoryFilter == null || categoryFilter.length() == 0) return true;
+            return (type.category.toLowerCase().equals(categoryFilter.toLowerCase()));
         }
 
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
             FilterResults results = new FilterResults();
 
-            if (constraint == null || constraint.length() == 0) {
+            if (hasNoConstraints()) {
                 results.values = foodTypes;
                 results.count = foodTypes.size();
             }
             else {
+                Log.d("NewItemAdapter", "filtering");
                 ArrayList<FoodType> filteredFoodTypes = new ArrayList<FoodType>();
                 for (FoodType type : foodTypes) {
-                    if (type.name.toLowerCase().contains(constraint.toString().toLowerCase())) {
+                    if (matchesNameFilter(type) && matchesCategoryFilter(type)) {
                         filteredFoodTypes.add(type);
                     }
                 }

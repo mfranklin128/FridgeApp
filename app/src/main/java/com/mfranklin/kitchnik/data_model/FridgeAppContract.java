@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class FridgeAppContract  {
     public FridgeAppContract() {}
 
-    public static final int DB_VERSION = 21;
+    public static final int DB_VERSION = 25;
 
     public static abstract class FoodTypeEntry implements BaseColumns {
         public static final String TABLE_NAME = "food_type";

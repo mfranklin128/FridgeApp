@@ -4,8 +4,13 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.transition.AutoTransition;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -94,7 +99,7 @@ public class StashAdapter extends FoodItemAdapter {
         return VIEW_TYPE_NORMAL_SOME_PROGRESS;
     }
 
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, final ViewGroup parent) {
         final LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final FoodItem thisFoodItem = filteredItemList.get(position);
 
@@ -102,41 +107,54 @@ public class StashAdapter extends FoodItemAdapter {
         if (rowView == null) {
             rowView = inflater.inflate(R.layout.stash_item, parent, false);
         }
-        StashViewHolder holder = (StashViewHolder) rowView.getTag();
-        if (holder == null) {
-            holder = new StashViewHolder();
-            holder.category = (TextView) rowView.findViewById(R.id.stash_item_category);
-            holder.name = (TextView) rowView.findViewById(R.id.stash_item_name);
-            holder.delete = (ImageButton) rowView.findViewById(R.id.stash_item_delete_button);
-            holder.addBack = (ImageButton) rowView.findViewById(R.id.stash_item_add_button);
-            holder.pProgress = (LinearLayout) rowView.findViewById(R.id.stash_item_progress_bar_positive);
-            holder.nProgress = (LinearLayout) rowView.findViewById(R.id.stash_item_progress_bar_negative);
-            holder.progressImage = (ImageView) rowView.findViewById(R.id.stash_item_progress_bar_positive_image);
-            holder.details = rowView.findViewById(R.id.stash_item_details);
-            holder.statuses = (Spinner) rowView.findViewById(R.id.stash_item_details_status_val);
-            holder. locations = (Spinner) rowView.findViewById(R.id.stash_item_details_location_val);
-            holder.reminderPicker = (Spinner) rowView.findViewById(R.id.stash_item_details_reminder_length);
-            holder.saveButton = (Button) rowView.findViewById(R.id.detail_card_save_button);
-            rowView.setTag(holder);
-        }
 
         // set category
-        holder.category.setText(thisFoodItem.type.category);
+        TextView category = (TextView) rowView.findViewById(R.id.stash_item_category);
+        category.setText(thisFoodItem.type.category);
         // set name
-        holder.name.setText(thisFoodItem.type.name);
+        TextView name = (TextView) rowView.findViewById(R.id.stash_item_name);
+        name.setText(thisFoodItem.type.name);
         // hook up delete button
-        holder.delete.setOnClickListener(new View.OnClickListener() {
+        ImageButton delete = (ImageButton) rowView.findViewById(R.id.stash_item_delete_button);
+        delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                thisFoodItem.delete();
-                itemList.remove(thisFoodItem);
-                filteredItemList.remove(thisFoodItem);
+                String message = "Removed " + thisFoodItem.type.name + " from " + Constants.locationToString(thisFoodItem.getLocation());
+                Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // do nothing, because we don't delete until the row disappears
+                    }
+                }).setCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        switch (event) {
+                            case DISMISS_EVENT_TIMEOUT:
+                                thisFoodItem.delete();
+                                itemList.remove(thisFoodItem);
+                                filteredItemList.remove(thisFoodItem);
+                                itemToReminder.remove(thisFoodItem);
+                                break;
+                            case DISMISS_EVENT_SWIPE:
+                                thisFoodItem.delete();
+                                itemList.remove(thisFoodItem);
+                                filteredItemList.remove(thisFoodItem);
+                                itemToReminder.remove(thisFoodItem);
+                                break;
+                            default:
+                                break;
+                        }
+                        notifyDataSetChanged();
+                        super.onDismissed(snackbar, event);
+                    }
+                }).show();
                 notifyDataSetChanged();
             }
         });
 
         // hook up add-to-list button
-        holder.addBack.setOnClickListener(new View.OnClickListener() {
+        ImageButton addBack = (ImageButton) rowView.findViewById(R.id.stash_item_add_button);
+        addBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 thisFoodItem.setStatus(Constants.STATUS_LIST);
@@ -149,154 +167,58 @@ public class StashAdapter extends FoodItemAdapter {
 
         // set width of progress bar
         Reminder rem = Reminder.getFoodItemReminder(thisFoodItem.db, thisFoodItem);
-        if (rem.getDaysRemaining() > 10) {
-            holder.pProgress.setVisibility(View.INVISIBLE);
-            holder.nProgress.setVisibility(View.INVISIBLE);
+        LinearLayout pProgress = (LinearLayout) rowView.findViewById(R.id.stash_item_progress_bar_positive);
+        LinearLayout nProgress = (LinearLayout) rowView.findViewById(R.id.stash_item_progress_bar_negative);
+        ImageView progressImage = (ImageView) rowView.findViewById(R.id.stash_item_progress_bar_positive_image);
+        if (rem == null || rem.getDaysRemaining() > 10) {
+            pProgress.setVisibility(View.INVISIBLE);
+            nProgress.setVisibility(View.INVISIBLE);
         }
-        if (rem.getDaysRemaining() <= 10) {
+        if (rem != null && rem.getDaysRemaining() <= 10) {
             float ratio = (10 - rem.getDaysRemaining())/10.0f;
             if (ratio > 1) ratio = 1;
             float pRatio = ratio;
             float nRatio = 1-ratio;
-            LinearLayout.LayoutParams pParams = (LinearLayout.LayoutParams) holder.pProgress.getLayoutParams();
-            LinearLayout.LayoutParams nParams = (LinearLayout.LayoutParams) holder.nProgress.getLayoutParams();
+            LinearLayout.LayoutParams pParams = (LinearLayout.LayoutParams) pProgress.getLayoutParams();
+            LinearLayout.LayoutParams nParams = (LinearLayout.LayoutParams) nProgress.getLayoutParams();
             pParams.weight = pRatio;
             nParams.weight = nRatio;
-            holder.pProgress.setLayoutParams(pParams);
-            holder.nProgress.setLayoutParams(nParams);
+            pProgress.setLayoutParams(pParams);
+            nProgress.setLayoutParams(nParams);
         }
-        if (rem.getDaysRemaining() <= 0) { // it's "expired", so make it red
-            holder.category.setTextColor(Color.argb(0xf0, 0xcc, 0x00, 0x00));
-            holder.name.setTextColor(Color.argb(0xf0, 0xcc, 0x00, 0x00));
-            holder.progressImage.setImageResource(R.drawable.red_rectangle);
+        if (rem != null && rem.getDaysRemaining() <= 0) { // it's "expired", so make it red
+            category.setTextColor(Color.argb(0xf0, 0xcc, 0x00, 0x00));
+            name.setTextColor(Color.argb(0xf0, 0xcc, 0x00, 0x00));
+            progressImage.setImageResource(R.drawable.red_rectangle);
         }
 
-        // fill in details
-        // status and location pickers
-        holder.statuses.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_dropdown_item, Constants.statusStrings));
-        holder.locations.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_dropdown_item, Constants.locationStrings));
-        int statusIndex, locationIndex, i = 0;
-        while (i < Constants.statusStrings.length) {
-            if (Constants.statusToString(thisFoodItem.getStatus()).equals(Constants.statusStrings[i])) break;
-            i++;
-        }
-        statusIndex = i;
-        i = 0;
-        while (i < Constants.locationStrings.length) {
-            if (Constants.locationToString(thisFoodItem.getLocation()).equals(Constants.locationStrings[i])) break;
-            i++;
-        }
-        locationIndex = i;
-        holder.statuses.setSelection(statusIndex);
-        holder.locations.setSelection(locationIndex);
-        final View locationsRef = holder.locations;
-        final View reminderRef = holder.reminderPicker;
-        holder.statuses.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int newStatus = Constants.stringToStatus((String) parent.getItemAtPosition(position));
-                thisFoodItem.setStatus(newStatus);
-                if (newStatus == Constants.STATUS_STASH) {
-                    locationsRef.setVisibility(View.VISIBLE);
-                    reminderRef.setVisibility(View.VISIBLE);
-                } else {
-                    locationsRef.setVisibility(View.INVISIBLE);
-                    reminderRef.setVisibility(View.INVISIBLE);
-                }
+        // Hook up detail card display on touch
+        class RefreshPopupWindow extends PopupWindow {
+            public RefreshPopupWindow(Context ctx) {
+                super(ctx);
             }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-        holder.locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int newLocation = Constants.stringToLocation((String) parent.getItemAtPosition(position));
-                thisFoodItem.setLocation(newLocation);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-        Integer[] reminderVals = new Integer[(int) Math.max(30, rem.getDaysRemaining() + 1)];
-        for (i = 0; i < reminderVals.length; i++) reminderVals[i] = i;
-        holder.reminderPicker.setAdapter(new ArrayAdapter<Integer>(ctx, android.R.layout.simple_spinner_dropdown_item, reminderVals));
-        holder.reminderPicker.setSelection((int) rem.getDaysRemaining());
-        final Reminder remRef = rem;
-        holder.reminderPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int oldDuration = remRef.getDurationDays();
-                int diff = position - (int) remRef.getDaysRemaining();
-                remRef.setDurationDays(oldDuration + diff); // automatically updates endDate
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        // set up save button
-        holder.saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                thisFoodItem.save();
-                if (thisFoodItem.getStatus() == Constants.STATUS_STASH) {
-                    remRef.save();
-                }
-                else {
-                    if (remRef.getId() != -1) {
-                        remRef.delete();
-                    }
-                }
+            public void dismiss() {
+                filter.filter();
                 notifyDataSetChanged();
-                notifyDataSetInvalidated();
-                itemToReminder.put(thisFoodItem, remRef);
+                super.dismiss();
             }
-        });
-
-        // set up expand/contract functionality
+        }
+        final RefreshPopupWindow detailCard = new RefreshPopupWindow(ctx);
+        detailCard.setOutsideTouchable(true);
+        detailCard.setWidth((int) (parent.getWidth() * 0.88));
+        detailCard.setHeight((int) (parent.getHeight() * 0.70));
+        detailCard.setFocusable(true);
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("StashAdapter", "is this where we crash?");
-                View details = v.findViewById(R.id.stash_item_details);
-                if (position == expandedPosition) { // we're closing
-                    details.setVisibility(View.GONE);
-                    v.setBackgroundResource(0);
-                    expandedPosition = -1;
-                    expandedView = null;
-                }
-                else {
-                    details.setVisibility(View.VISIBLE);
-                    v.setBackgroundResource(R.drawable.grey_rectangle);
-                    if (expandedPosition != -1) {
-                        View expandedDetails = expandedView.findViewById(R.id.stash_item_details);
-                        expandedDetails.setVisibility(View.GONE);
-                        expandedView.setBackgroundResource(0);
-                    }
-                    expandedPosition = position;
-                    expandedView = v;
-                }
+                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
+                detailCard.setContentView(detailCardView);
+                detailCard.showAtLocation(v, Gravity.CENTER, 0, 0);
             }
         });
 
         return rowView;
     }
 
-    private class StashViewHolder {
-        TextView category;
-        TextView name;
-        ImageButton delete;
-        ImageButton addBack;
-        LinearLayout pProgress;
-        LinearLayout nProgress;
-        ImageView progressImage;
-        View details;
-        Spinner statuses;
-        Spinner locations;
-        Spinner reminderPicker;
-        Button saveButton;
-    }
 }

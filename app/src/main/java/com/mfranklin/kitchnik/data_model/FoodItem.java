@@ -13,6 +13,8 @@ import com.mfranklin.kitchnik.data_model.FridgeAppContract.*;
 public class FoodItem {
 
     public FoodType type;
+    private String name;
+    private String category;
     private int status;
     private int location;
     private long id;

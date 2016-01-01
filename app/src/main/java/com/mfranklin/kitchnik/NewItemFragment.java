@@ -2,6 +2,7 @@ package com.mfranklin.kitchnik;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
@@ -15,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
@@ -25,6 +27,7 @@ import com.mfranklin.kitchnik.data_model.FoodType;
 import com.mfranklin.kitchnik.data_model.FridgeAppDbHelper;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 /**
@@ -68,13 +71,19 @@ public class NewItemFragment extends Fragment {
         // Inflate the layout for this fragment
         View toReturn = inflater.inflate(R.layout.fragment_new_item, container, false);
 
+
+
         final FridgeAppDbHelper dbHelper = new FridgeAppDbHelper(getActivity());
         FoodType[] foodTypes = FoodType.getAllFoodTypes(dbHelper.getWritableDatabase());
         if (foodTypes == null) foodTypes = new FoodType[0];
+        ArrayList<String> categories = new ArrayList<>();
+        for (FoodType type : foodTypes) {
+            if (!categories.contains(type.category)) categories.add(type.category);
+        }
 
-        final NewItemAdapter itemArrayAdapter = new NewItemAdapter(foodTypes, getActivity());
+        final NewItemAdapter typeAdapter = new NewItemAdapter(foodTypes, getActivity());
         ListView lv = (ListView) toReturn.findViewById(R.id.new_item_fragment_container);
-        lv.setAdapter(itemArrayAdapter);
+        lv.setAdapter(typeAdapter);
 
         // Set up new type creation
         final PopupWindow newTypeDialog = new PopupWindow(getActivity());
@@ -84,8 +93,6 @@ public class NewItemFragment extends Fragment {
         final Spinner categorySpinner = (Spinner) newTypeView.findViewById(R.id.new_type_category_vals);
         final Spinner defaultLocationSpinner = (Spinner) newTypeView.findViewById(R.id.new_type_default_location_vals);
         // set up category values
-        ArrayList<String> categories = new ArrayList<String>();
-        for (FoodType type: foodTypes) if (!categories.contains(type.category)) categories.add(type.category);
         categorySpinner.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, categories));
         // set up location values
         defaultLocationSpinner.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, Constants.locationStrings));
@@ -99,7 +106,8 @@ public class NewItemFragment extends Fragment {
                 int defaultLocation = Constants.stringToLocation(defaultLocationSpinner.getSelectedItem().toString());
                 FoodType newType = new FoodType(name, category, defaultLocation, 1, -1, dbHelper.getWritableDatabase());
                 newType.save();
-                itemArrayAdapter.addItem(newType);
+                typeAdapter.addItem(newType);
+                typeAdapter.notifyDataSetChanged();
                 newTypeDialog.dismiss();
             }
         });
@@ -111,6 +119,7 @@ public class NewItemFragment extends Fragment {
 
         // Set up filter edit text
         EditText et = (EditText) toReturn.findViewById(R.id.new_item_search_text);
+        final NewItemAdapter.FoodTypeFilter typeFilter = (NewItemAdapter.FoodTypeFilter) typeAdapter.getFilter();
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -120,7 +129,8 @@ public class NewItemFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("NewItem", "onTextChanged: " + s);
-                itemArrayAdapter.getFilter().filter(s);
+                typeFilter.setNameFilter("" + s);
+                typeFilter.filter("");
             }
 
             @Override
@@ -128,6 +138,44 @@ public class NewItemFragment extends Fragment {
 
             }
         });
+
+        // set up the category filters
+        LinearLayout horizontalScoll = (LinearLayout) toReturn.findViewById(R.id.new_item_category_container);
+        final ArrayList<Button> categoryFilterButtons = new ArrayList<>();
+        for (final String category : categories) {
+            // inflate a new button
+            Log.d("NewItemFragment", "inflating: " + category);
+            View categoryButtonLayout = inflater.inflate(R.layout.category_filter_view, horizontalScoll, false);
+            Button categoryButton = (Button) categoryButtonLayout.findViewById(R.id.category_filter_button);
+            categoryButton.setText(category);
+            categoryButton.setTypeface(Typeface.DEFAULT);
+            categoryFilterButtons.add(categoryButton);
+            horizontalScoll.addView(categoryButtonLayout);
+        }
+        for (final Button categoryButton : categoryFilterButtons) {
+            categoryButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (categoryButton.getTypeface() == Typeface.DEFAULT) { // button is off
+                        typeFilter.setCategoryFilter(categoryButton.getText().toString()); // using buttons to store state?
+                        categoryButton.setTypeface(Typeface.DEFAULT_BOLD);
+                        categoryButton.setBackgroundColor(Color.LTGRAY);
+                        for (Button otherCategoryButton : categoryFilterButtons) {
+                            if (otherCategoryButton != categoryButton) {
+                                otherCategoryButton.setTypeface(Typeface.DEFAULT);
+                                otherCategoryButton.setBackgroundColor(Color.TRANSPARENT);
+                            }
+                        }
+                    }
+                    else { // button is already on
+                        typeFilter.removeCategoryFilter();
+                        categoryButton.setTypeface(Typeface.DEFAULT);
+                        categoryButton.setBackgroundColor(Color.TRANSPARENT);
+                    }
+                    typeFilter.filter();
+                }
+            });
+        }
         return toReturn;
     }
 

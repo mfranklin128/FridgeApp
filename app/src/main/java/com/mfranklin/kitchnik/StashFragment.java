@@ -66,35 +66,10 @@ public class StashFragment extends Fragment {
         final Button freezerHeader = (Button) toReturn.findViewById(R.id.stash_tab_freezer);
         final Button pantryHeader = (Button) toReturn.findViewById(R.id.stash_tab_pantry);
         final Button otherHeader = (Button) toReturn.findViewById(R.id.stash_tab_other);
-        fridgeHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FRIDGE));
-        freezerHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FREEZER));
-        pantryHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_PANTRY));
-        otherHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_NONE));
-        View filterExpansionButton = toReturn.findViewById(R.id.stash_filter_expand_button);
-        filterExpansionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (filterRow.getVisibility() == View.VISIBLE) {
-                    filterRow.setVisibility(View.GONE);
-                    ((Button) v).setText(">");
-                    stashFilter.removeLocationFilter(Constants.LOC_FRIDGE);
-                    stashFilter.removeLocationFilter(Constants.LOC_FREEZER);
-                    stashFilter.removeLocationFilter(Constants.LOC_PANTRY);
-                    fridgeHeader.setTypeface(Typeface.DEFAULT);
-                    fridgeHeader.setBackgroundColor(Color.TRANSPARENT);
-                    freezerHeader.setTypeface(Typeface.DEFAULT);
-                    freezerHeader.setBackgroundColor(Color.TRANSPARENT);
-                    pantryHeader.setTypeface(Typeface.DEFAULT);
-                    pantryHeader.setBackgroundColor(Color.TRANSPARENT);
-                    otherHeader.setTypeface(Typeface.DEFAULT);
-                    otherHeader.setBackgroundColor(Color.TRANSPARENT);
-                }
-                else {
-                    filterRow.setVisibility(View.VISIBLE);
-                    ((Button) v).setText("<");
-                }
-            }
-        });
+        fridgeHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FRIDGE, new Button[] {freezerHeader, pantryHeader, otherHeader}));
+        freezerHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_FREEZER, new Button[] {fridgeHeader, pantryHeader, otherHeader}));
+        pantryHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_PANTRY, new Button[] {fridgeHeader, freezerHeader, otherHeader}));
+        otherHeader.setOnClickListener(new LocationFilterOnClickListener(stashFilter, Constants.LOC_NONE, new Button[] {fridgeHeader, freezerHeader, pantryHeader}));
 
         // Set up filter edit text
         EditText et = (EditText) toReturn.findViewById(R.id.stash_search_text);
@@ -125,18 +100,19 @@ public class StashFragment extends Fragment {
 
     private class LocationFilterOnClickListener implements View.OnClickListener {
         private int location;
-        private boolean on = false;
         private StashAdapter.FoodItemFilter filter;
+        private Button[] otherHeaders;
 
-        public LocationFilterOnClickListener(StashAdapter.FoodItemFilter filter, int location) {
+        public LocationFilterOnClickListener(StashAdapter.FoodItemFilter filter, int location, Button[] otherHeaders) {
             this.location = location;
             this.filter = filter;
+            this.otherHeaders = otherHeaders;
         }
 
         public void onClick(View v) {
             Button b = (Button) v;
-            if (!on) {
-                filter.addLocationFilter(location);
+            if (!(b.getTypeface() == Typeface.DEFAULT_BOLD)) {
+                filter.setLocationFilter(location);
                 b.setTypeface(Typeface.DEFAULT_BOLD);
                 b.setBackgroundColor(Color.LTGRAY);
             }
@@ -145,7 +121,10 @@ public class StashFragment extends Fragment {
                 b.setTypeface(Typeface.DEFAULT);
                 b.setBackgroundColor(Color.TRANSPARENT);
             }
-            on = !on;
+            for (Button header : otherHeaders) {
+                header.setTypeface(Typeface.DEFAULT);
+                header.setBackgroundColor(Color.TRANSPARENT);
+            }
             filter.filter();
         }
     }

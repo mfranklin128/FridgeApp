@@ -2,6 +2,7 @@ package com.mfranklin.kitchnik.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -65,7 +66,8 @@ abstract class FoodItemAdapter extends BaseAdapter {
 
         public void removeStatusFilter(int statusFilter) { statusFilters.remove(statusFilter); }
 
-        public void addLocationFilter(int locationFilter) {
+        public void setLocationFilter(int locationFilter) {
+            locationFilters.clear();
             locationFilters.add(locationFilter);
         }
 
@@ -144,7 +146,6 @@ abstract class FoodItemAdapter extends BaseAdapter {
 
     protected static View assignItemDetailCard(final Context ctx, LayoutInflater inflater, final FoodItem thisFoodItem) {
         View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
-        detailCardView.setBackgroundColor(Color.argb(0xf0, 0xB0, 0xB0, 0xB0));
         // Fill in details
         TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
         TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
