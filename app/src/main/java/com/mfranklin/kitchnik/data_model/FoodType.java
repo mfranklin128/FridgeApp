@@ -6,14 +6,16 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.mfranklin.kitchnik.data_model.FridgeAppContract.*;
 
+import java.util.ArrayList;
+
 
 /**
  * Created by root on 9/12/15.
  */
 public class FoodType {
 
-    public String name = null; // e.g., chicken
-    public String category = null; // e.g., fruit, vegetable, meat
+    public String default_name = null; // e.g., chicken
+    public String default_category = null; // e.g., fruit, vegetable, meat
     public int default_reminder = 0;
     public int default_location = Constants.LOC_FRIDGE;
     public SQLiteDatabase db;
@@ -21,8 +23,8 @@ public class FoodType {
 
     // Create a FoodType with existing values
     public FoodType(String name, String category, int default_reminder, int default_location, long id, SQLiteDatabase db) {
-        this.name = name;
-        this.category = category;
+        this.default_name = name;
+        this.default_category = category;
         this.default_reminder = default_reminder;
         this.default_location = default_location;
         this.id = id;
@@ -38,8 +40,8 @@ public class FoodType {
         int idIndex = c.getColumnIndex(FoodTypeEntry._ID);
 
         // assume we have all the columns
-        name = c.getString(nameIndex);
-        category = c.getString(categoryIndex);
+        default_name = c.getString(nameIndex);
+        default_category = c.getString(categoryIndex);
         default_reminder = c.getInt(reminderIndex);
         default_location = c.getInt(locationIndex);
         id = c.getLong(idIndex);
@@ -58,8 +60,8 @@ public class FoodType {
     public long save() {
         long result = -1;
         ContentValues vals = new ContentValues();
-        vals.put(FoodTypeEntry.COLUMN_NAME_NAME, name);
-        vals.put(FoodTypeEntry.COLUMN_NAME_CATEGORY, category);
+        vals.put(FoodTypeEntry.COLUMN_NAME_NAME, default_name);
+        vals.put(FoodTypeEntry.COLUMN_NAME_CATEGORY, default_category);
         vals.put(FoodTypeEntry.COLUMN_NAME_DEFAULT_REMINDER, default_reminder);
         vals.put(FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION, default_location);
         if (id == -1) { // this is a new entry
@@ -103,4 +105,18 @@ public class FoodType {
             return toReturn;
         }
     }
+
+    public static String[] getAllCategories(SQLiteDatabase db) {
+        // build the categories cache now, so it doesn't have to query DB later
+        String[] toReturn;
+        FoodType[] foodTypes = FoodType.getAllFoodTypes(db);
+        ArrayList<String> categoriesList = new ArrayList<>();
+        for (FoodType type : foodTypes) {
+            if (!categoriesList.contains(type.default_category)) categoriesList.add(type.default_category);
+        }
+        toReturn = new String[categoriesList.size()];
+        toReturn = categoriesList.toArray(toReturn);
+        return toReturn;
+    }
+
 }

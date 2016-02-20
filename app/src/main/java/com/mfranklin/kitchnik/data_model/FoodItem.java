@@ -24,7 +24,9 @@ public class FoodItem {
         this.db = db;
     }
 
-    public FoodItem(FoodType type, int status, int location, long id, SQLiteDatabase db) {
+    public FoodItem(FoodType type, String name, String category, int status, int location, long id, SQLiteDatabase db) {
+        this.name = name;
+        this.category = category;
         this.type = type;
         this.status = status;
         this.location = location;
@@ -37,6 +39,8 @@ public class FoodItem {
     public FoodItem(Cursor c, SQLiteDatabase db) {
         this.db = db;
 
+        int nameIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_NAME + "fooditem");
+        int categoryIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_CATEGORY + "fooditem");
         int statusIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_STATUS + "fooditem");
         int locationIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem");
         int idIndex = c.getColumnIndex(FoodItemEntry._ID+ "fooditem");
@@ -46,6 +50,8 @@ public class FoodItem {
         int foodTypeLocationIndex = c.getColumnIndex(FoodTypeEntry.COLUMN_NAME_DEFAULT_LOCATION + "foodtype");
         int foodTypeIdIndex = c.getColumnIndex(FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem");
 
+        name = c.getString(nameIndex);
+        category = c.getString(categoryIndex);
         status = c.getInt(statusIndex);
         location = c.getInt(locationIndex);
 
@@ -62,6 +68,12 @@ public class FoodItem {
     public long save() {
         long result = -1;
         ContentValues vals = new ContentValues();
+
+        // Put the name
+        vals.put(FoodItemEntry.COLUMN_NAME_NAME, name);
+
+        // Put the category
+        vals.put(FoodItemEntry.COLUMN_NAME_CATEGORY, category);
 
         // Put the status
         vals.put(FoodItemEntry.COLUMN_NAME_STATUS, status);
@@ -92,6 +104,14 @@ public class FoodItem {
         return id;
     }
 
+    public void setName(String name)  { this.name = name; }
+
+    public String getName() { return name; }
+
+    public void setCategory(String category) { this.category = category; }
+
+    public String getCategory() { return category; }
+
     public void setStatus(int status) {
         this.status = status;
     }
@@ -114,9 +134,10 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_NAME,
+                FoodItemEntry.COLUMN_NAME_CATEGORY,
                 FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
-                FoodItemEntry.COLUMN_NAME_EXP_DATE,
                 FoodTypeEntry._ID,
                 FoodTypeEntry.COLUMN_NAME_NAME,
                 FoodTypeEntry.COLUMN_NAME_CATEGORY,
@@ -129,9 +150,10 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_NAME + " AS " + FoodItemEntry.COLUMN_NAME_NAME + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_CATEGORY + " AS " + FoodItemEntry.COLUMN_NAME_CATEGORY + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
-                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_EXP_DATE + " AS " + FoodItemEntry.COLUMN_NAME_EXP_DATE + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_NAME + " AS " + FoodTypeEntry.COLUMN_NAME_NAME + "foodtype" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry.COLUMN_NAME_CATEGORY + " AS " + FoodTypeEntry.COLUMN_NAME_CATEGORY + "foodtype" + ", " +
@@ -165,6 +187,8 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_NAME,
+                FoodItemEntry.COLUMN_NAME_CATEGORY,
                 FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
                 FoodTypeEntry._ID,
@@ -176,6 +200,8 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_NAME + " AS " + FoodItemEntry.COLUMN_NAME_NAME + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_CATEGORY + " AS " + FoodItemEntry.COLUMN_NAME_CATEGORY + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
@@ -211,6 +237,8 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_NAME,
+                FoodItemEntry.COLUMN_NAME_CATEGORY,
                 FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
                 FoodTypeEntry._ID,
@@ -222,6 +250,8 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_NAME + " AS " + FoodItemEntry.COLUMN_NAME_NAME + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_CATEGORY + " AS " + FoodItemEntry.COLUMN_NAME_CATEGORY + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +
@@ -250,6 +280,8 @@ public class FoodItem {
         String[] projection = {
                 FoodItemEntry._ID,
                 FoodItemEntry.COLUMN_NAME_FOOD_TYPE,
+                FoodItemEntry.COLUMN_NAME_NAME,
+                FoodItemEntry.COLUMN_NAME_CATEGORY,
                 FoodItemEntry.COLUMN_NAME_STATUS,
                 FoodItemEntry.COLUMN_NAME_LOCATION,
                 FoodTypeEntry._ID,
@@ -261,6 +293,8 @@ public class FoodItem {
                 "SELECT " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry._ID + " AS " + FoodItemEntry._ID + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " AS " + FoodItemEntry.COLUMN_NAME_FOOD_TYPE + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_NAME + " AS " + FoodItemEntry.COLUMN_NAME_NAME + "fooditem" + ", " +
+                        FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_CATEGORY + " AS " + FoodItemEntry.COLUMN_NAME_CATEGORY + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_STATUS + " AS " + FoodItemEntry.COLUMN_NAME_STATUS + "fooditem" + ", " +
                         FoodItemEntry.TABLE_NAME + "." + FoodItemEntry.COLUMN_NAME_LOCATION + " AS " + FoodItemEntry.COLUMN_NAME_LOCATION + "fooditem" + ", " +
                         FoodTypeEntry.TABLE_NAME + "." + FoodTypeEntry._ID + " AS " + FoodTypeEntry._ID + "foodtype" + ", " +

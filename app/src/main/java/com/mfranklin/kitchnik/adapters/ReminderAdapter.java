@@ -81,7 +81,7 @@ public class ReminderAdapter extends BaseAdapter {
 
         // Set up item name
         TextView foodName = (TextView) rowView.findViewById(R.id.reminder_item_name);
-        foodName.setText(thisItem.type.name);
+        foodName.setText(thisItem.getName());
         // Set up reminder duration
         TextView duration = (TextView) rowView.findViewById(R.id.reminder_item_duration);
         duration.setText(thisReminder.getDaysRemaining() + " days");

@@ -32,6 +32,8 @@ public class FridgeAppDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE IF NOT EXISTS " + FridgeAppContract.FoodItemEntry.TABLE_NAME + " (" +
                     FridgeAppContract.FoodItemEntry._ID + " INTEGER PRIMARY KEY," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_FOOD_TYPE + " NOT NULL," +
+                    FridgeAppContract.FoodItemEntry.COLUMN_NAME_NAME + " NOT NULL," +
+                    FridgeAppContract.FoodItemEntry.COLUMN_NAME_CATEGORY + " NOT NULL," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_STATUS + " INTEGER NOT NULL," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_LOCATION + " INTEGER," +
                     FridgeAppContract.FoodItemEntry.COLUMN_NAME_EXP_DATE + " TEXT," +

@@ -8,113 +8,253 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:background="@drawable/grey_rectangle_with_corners"
-        android:padding="8dp">
+        android:orientation="vertical"
+        android:padding="4dp">
 
         <LinearLayout
             android:id="@+id/detail_card_name_row"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
-            <TextView
+            <AutoCompleteTextView
                 android:id="@+id/detail_card_name_val"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|left"
                 android:textSize="20sp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|right"
-                android:textSize="10sp"/>
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/detail_card_location_row"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Location: "
+                android:textAllCaps="true"
+                android:textColor="@color/material_deep_teal_500"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/detail_card_location_fridge"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:background="@color/material_grey_50"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:text="Fridge"
+                    android:textColor="@color/material_grey_800"
+                    android:textStyle="normal" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="fill_parent"
+                    android:background="@color/material_blue_grey_800"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp" />
+
+                <TextView
+                    android:id="@+id/detail_card_location_freezer"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:background="@color/material_grey_50"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:text="Freezer"
+                    android:textColor="@color/material_grey_800"
+                    android:textStyle="normal" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="fill_parent"
+                    android:background="@color/material_blue_grey_800"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp" />
+
+                <TextView
+                    android:id="@+id/detail_card_location_pantry"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:background="@color/material_grey_50"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:text="Pantry"
+                    android:textColor="@color/material_grey_800"
+                    android:textStyle="normal" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="fill_parent"
+                    android:background="@color/material_blue_grey_800"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp" />
+
+                <TextView
+                    android:id="@+id/detail_card_location_other"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:background="@color/material_grey_50"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:text="Other"
+                    android:textColor="@color/material_grey_800"
+                    android:textStyle="normal" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/detail_card_category_row"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/material_grey_50"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Category: "
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:textAllCaps="true"
+                android:textColor="@color/material_deep_teal_500"
+                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/detail_card_category_val"
-                android:layout_width="fill_parent"
+            <Spinner
+                android:id="@+id/detail_card_category_text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="right"
-                android:textSize="17sp" />
+                android:spinnerMode="dialog"
+                android:textColor="@color/material_grey_800" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:id="@+id/detail_card_quantity_row"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status: "
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:text="Quantity: "
+                android:textAllCaps="true"
+                android:textColor="@color/material_deep_teal_500"
+                android:textSize="16sp" />
 
-            <Spinner
-                android:id="@+id/detail_card_status_vals"
-                android:layout_width="fill_parent"
+            <Button
+                android:id="@+id/detail_card_quantity_decrement"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="32dp"
                 android:layout_height="wrap_content"
-                android:gravity="right"
-                android:spinnerMode="dialog" />
+                android:clickable="true"
+                android:text="-" />
+
+            <TextView
+                android:id="@+id/detail_card_quantity_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/material_grey_800"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/detail_card_quantity_increment"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:text="+" />
+
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:id="@+id/detail_card_reminder_row"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Location: "
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:text="Reminder (days): "
+                android:textAllCaps="true"
+                android:textColor="@color/material_deep_teal_500"
+                android:textSize="16sp" />
 
-            <Spinner
-                android:id="@+id/detail_card_location_vals"
-                android:layout_width="fill_parent"
+
+            <Button
+                android:id="@+id/detail_card_reminder_decrement"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="32dp"
                 android:layout_height="wrap_content"
-                android:gravity="right"
-                android:spinnerMode="dialog" />
+                android:clickable="true"
+                android:text="-" />
+
+            <TextView
+                android:id="@+id/detail_card_reminder_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/material_grey_800"
+                android:background="@color/material_grey_50"/>
+
+            <Button
+                android:id="@+id/detail_card_reminder_increment"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:text="+" />
+
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/detail_card_save_row"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/material_grey_50"
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/detail_card_save_button"
+                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Reminder: "
-                android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <Spinner
-                android:id="@+id/detail_card_reminder_length"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:dropDownWidth="wrap_content"
-                android:gravity="right"
-                android:spinnerMode="dialog" />
+                android:layout_gravity="center"
+                android:background="@color/material_grey_50"
+                android:gravity="center"
+                android:text="Save" />
         </LinearLayout>
-
-        <Button
-            android:id="@+id/detail_card_save_button"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save" />
     </LinearLayout>
 </LinearLayout>

@@ -1,7 +1,9 @@
 package com.mfranklin.kitchnik.adapters;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Filter;
@@ -19,6 +22,7 @@ import android.widget.Toast;
 import com.mfranklin.kitchnik.data_model.Constants;
 import com.mfranklin.kitchnik.data_model.FoodItem;
 import com.mfranklin.kitchnik.R;
+import com.mfranklin.kitchnik.data_model.FoodType;
 import com.mfranklin.kitchnik.data_model.Reminder;
 
 import java.util.ArrayList;
@@ -94,7 +98,7 @@ abstract class FoodItemAdapter extends BaseAdapter {
 
         private boolean matchesNameFilter(FoodItem item) {
             if (nameFilter == null || nameFilter.length() == 0) return true;
-            String[] nameWords = item.type.name.split("\\s+");
+            String[] nameWords = item.getName().split("\\s+");
             for (String nameWord : nameWords) if (nameWord.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
             return false;
         }
@@ -144,129 +148,101 @@ abstract class FoodItemAdapter extends BaseAdapter {
         }
     }
 
-    protected static View assignItemDetailCard(final Context ctx, LayoutInflater inflater, final FoodItem thisFoodItem) {
+    protected static View assignItemDetailCard(final Context ctx, LayoutInflater inflater, final FoodItem thisFoodItem, final String[] categories) {
         View detailCardView = inflater.inflate(R.layout.food_item_detail_card, null);
         // Fill in details
         TextView name = (TextView) detailCardView.findViewById(R.id.detail_card_name_val);
-        TextView category = (TextView) detailCardView.findViewById(R.id.detail_card_category_val);
-        name.setText(thisFoodItem.type.name);
-        category.setText(thisFoodItem.type.category);
+        name.setText(thisFoodItem.getName());
 
-        // Set up status spinner and location spinner
-        Spinner statuses = (Spinner) detailCardView.findViewById(R.id.detail_card_status_vals);
-        final Spinner locations = (Spinner) detailCardView.findViewById(R.id.detail_card_location_vals);
-        final Spinner reminderPicker = (Spinner) detailCardView.findViewById(R.id.detail_card_reminder_length);
-        String[] statusVals = Constants.statusStrings;
-        String[] locationVals = Constants.locationStrings;
-        // set adapters
-        statuses.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, statusVals));
-        locations.setAdapter(new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, locationVals));
-        // get index to start statuses at
-        int index = 0;
-        for (int i = 0; i < statusVals.length; i++) {
-            if (Constants.statusToString(thisFoodItem.getStatus()).equals(statusVals[i])) index = i;
+        // Set up location buttons
+        final TextView fridgeLoc = (TextView) detailCardView.findViewById(R.id.detail_card_location_fridge);
+        final TextView freezerLoc = (TextView) detailCardView.findViewById(R.id.detail_card_location_freezer);
+        final TextView pantryLoc = (TextView) detailCardView.findViewById(R.id.detail_card_location_pantry);
+        final TextView otherLoc = (TextView) detailCardView.findViewById(R.id.detail_card_location_other);
+        switch (thisFoodItem.getLocation()) {
+            case Constants.LOC_FRIDGE:
+                fridgeLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                break;
+            case Constants.LOC_FREEZER:
+                freezerLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                break;
+            case Constants.LOC_PANTRY:
+                pantryLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                break;
+            default:
+                otherLoc.setTypeface(Typeface.DEFAULT_BOLD);
         }
-        statuses.setSelection(index);
-        // get index to start locations at
-        index = 0;
-        for (int i = 0; i < locationVals.length; i++) {
-            if (Constants.locationToString(thisFoodItem.getLocation()).equals(locationVals[i])) index = i;
-        }
-        locations.setSelection(index);
-        // Hook up status onSelected
-        statuses.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        fridgeLoc.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int newStatus = Constants.stringToStatus((String) parent.getItemAtPosition(position));
-                thisFoodItem.setStatus(newStatus);
-                // If the item is in the stash, it has a location, potentially
-                if (newStatus == Constants.STATUS_STASH) {
-                    locations.setVisibility(View.VISIBLE);
-                    reminderPicker.setVisibility(View.VISIBLE);
-                }
-                else {
-                    locations.setVisibility(View.INVISIBLE);
-                    reminderPicker.setVisibility(View.INVISIBLE);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+            public void onClick(View v) {
+                fridgeLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                freezerLoc.setTypeface(Typeface.DEFAULT);
+                pantryLoc.setTypeface(Typeface.DEFAULT);
+                otherLoc.setTypeface(Typeface.DEFAULT);
+                thisFoodItem.setLocation(Constants.LOC_FRIDGE);
             }
         });
-        locations.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        freezerLoc.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int newLocation = Constants.stringToLocation((String) parent.getItemAtPosition(position));
-                thisFoodItem.setLocation(newLocation);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+            public void onClick(View v) {
+                fridgeLoc.setTypeface(Typeface.DEFAULT);
+                freezerLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                pantryLoc.setTypeface(Typeface.DEFAULT);
+                otherLoc.setTypeface(Typeface.DEFAULT);
+                thisFoodItem.setLocation(Constants.LOC_FREEZER);
             }
         });
-        // Set up reminder text
-        Integer[] reminderVals = new Integer[30];
-        for (int i = 0; i < reminderVals.length; i++) {
-            reminderVals[i] = i+1; // display days 1 - 60
-        }
-        reminderPicker.setAdapter(new ArrayAdapter<Integer>(ctx, android.R.layout.simple_spinner_item, reminderVals));
-        // set up initial value, if any
-        Calendar today = Calendar.getInstance();
-        final int NUM_MILLIS_PER_DAY = 1000*60*60*24;
-        Reminder rem = Reminder.getFoodItemReminder(thisFoodItem.db, thisFoodItem);
-        if (rem == null) {
-            Log.d("FoodItemAdapter", "didn't find reminder");
-            rem = new Reminder(thisFoodItem.db);
-            rem.setStartDate(Calendar.getInstance().getTime());
-            rem.setDurationDays(thisFoodItem.type.default_reminder);
-            rem.setItemId(thisFoodItem.getId());
-        }
-        Calendar startCal = Calendar.getInstance(); startCal.setTime(rem.getStartDate());
-        startCal.add(Calendar.DATE, rem.getDurationDays());
-        long endTime = startCal.getTime().getTime();
-
-        long difference = (endTime - today.getTime().getTime()) / (NUM_MILLIS_PER_DAY);
-        reminderPicker.setSelection((int) difference); // this isn't great, but whatever, for now. don't worry about long vs int, and subtract 1 to get the index
-        // set up onSelected
-        final Reminder finalRem = rem;
-        reminderPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        pantryLoc.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("FoodItemAdapter", "setting reminder duration: " + (position+1));
-                finalRem.setDurationDays(position + 1);
+            public void onClick(View v) {
+                fridgeLoc.setTypeface(Typeface.DEFAULT);
+                freezerLoc.setTypeface(Typeface.DEFAULT);
+                pantryLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                otherLoc.setTypeface(Typeface.DEFAULT);
+                thisFoodItem.setLocation(Constants.LOC_PANTRY);
             }
-
+        });
+        otherLoc.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+            public void onClick(View v) {
+                fridgeLoc.setTypeface(Typeface.DEFAULT);
+                freezerLoc.setTypeface(Typeface.DEFAULT);
+                pantryLoc.setTypeface(Typeface.DEFAULT);
+                otherLoc.setTypeface(Typeface.DEFAULT_BOLD);
+                thisFoodItem.setLocation(Constants.LOC_NONE);
             }
         });
 
 
-        // Set up save() button
+        // Set up category spinner
+        Spinner categorySpinner = (Spinner) detailCardView.findViewById(R.id.detail_card_category_text);
+        categorySpinner.setAdapter(new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_dropdown_item, categories));
+        for (int i = 0; i < categories.length; i++) {
+            if (thisFoodItem.getCategory().equals(categories[i])) categorySpinner.setSelection(i);
+        }
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                thisFoodItem.setCategory(categories[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Set up reminder row
+        Reminder reminder = Reminder.getFoodItemReminder(thisFoodItem.db, thisFoodItem);
+        TextView reminderDays = (TextView) detailCardView.findViewById(R.id.detail_card_reminder_text);
+        reminderDays.setText((int) reminder.getDaysRemaining()+"");
+
+        // Set up save button
         Button saveButton = (Button) detailCardView.findViewById(R.id.detail_card_save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 thisFoodItem.save();
-                if (thisFoodItem.getStatus() == Constants.STATUS_STASH) {
-                    Log.d("FoodItemAdapter", "saving reminder duration: " + finalRem.getDurationDays());
-                    finalRem.save();
-                }
-                else {
-                    if (finalRem.getId() != -1) {
-                        // the reminder existed, but now the item is going on the list, so we delete it
-                        finalRem.delete();
-                    }
-                }
-                Toast confirm = Toast.makeText(ctx, "Updated", Toast.LENGTH_SHORT);
-                confirm.show();
             }
         });
-
         return detailCardView;
     }
 }

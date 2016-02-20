@@ -88,10 +88,10 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
 
-                final FoodItem newItem = new FoodItem(type, Constants.STATUS_LIST, type.default_location, -1, type.db);
+                final FoodItem newItem = new FoodItem(type, type.default_name, type.default_category, Constants.STATUS_LIST, type.default_location, -1, type.db);
                 newItem.save();
 
-                String message = "Added " + newItem.type.name + " to shopping list";
+                String message = "Added " + newItem.getName() + " to shopping list";
                 Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) { // undo
@@ -116,10 +116,10 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
             public void onClick(View v) {
                 Calendar cal = Calendar.getInstance();
 
-                final FoodItem newItem = new FoodItem(type, Constants.STATUS_STASH, type.default_location, -1, type.db);
+                final FoodItem newItem = new FoodItem(type, type.default_name, type.default_category, Constants.STATUS_STASH, type.default_location, -1, type.db);
                 newItem.save();
 
-                String message = "Added " + newItem.type.name + " to " + Constants.locationToString(newItem.getLocation());
+                String message = "Added " + newItem.getName() + " to " + Constants.locationToString(newItem.getLocation());
                 Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) { // undo
@@ -160,9 +160,9 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
         }
         // Fill in details
         TextView name = (TextView) v.findViewById(R.id.new_item_food_type_name);
-        name.setText(type.name);
+        name.setText(type.default_name);
         TextView category = (TextView) v.findViewById(R.id.new_item_food_type_category);
-        category.setText(type.category);
+        category.setText(type.default_category);
         return v;
     }
 
@@ -217,14 +217,14 @@ public class NewItemAdapter extends BaseAdapter implements Filterable {
 
         private boolean matchesNameFilter(FoodType type) {
             if (nameFilter == null || nameFilter.length() == 0) return true;
-            String[] words = type.name.split("\\s+");
+            String[] words = type.default_name.split("\\s+");
             for (String word : words) if (word.toLowerCase().startsWith(nameFilter.toLowerCase())) return true;
             return false;
         }
 
         private boolean matchesCategoryFilter(FoodType type) {
             if (categoryFilter == null || categoryFilter.length() == 0) return true;
-            return (type.category.toLowerCase().equals(categoryFilter.toLowerCase()));
+            return (type.default_category.toLowerCase().equals(categoryFilter.toLowerCase()));
         }
 
         @Override

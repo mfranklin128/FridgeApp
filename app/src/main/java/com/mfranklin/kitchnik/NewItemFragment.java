@@ -78,7 +78,7 @@ public class NewItemFragment extends Fragment {
         if (foodTypes == null) foodTypes = new FoodType[0];
         ArrayList<String> categories = new ArrayList<>();
         for (FoodType type : foodTypes) {
-            if (!categories.contains(type.category)) categories.add(type.category);
+            if (!categories.contains(type.default_category)) categories.add(type.default_category);
         }
 
         final NewItemAdapter typeAdapter = new NewItemAdapter(foodTypes, getActivity());

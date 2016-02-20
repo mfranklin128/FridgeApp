@@ -2,6 +2,8 @@ package com.mfranklin.kitchnik.adapters;
 
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.Snackbar;
@@ -31,8 +33,11 @@ import android.widget.Toast;
 import com.mfranklin.kitchnik.data_model.Constants;
 import com.mfranklin.kitchnik.data_model.FoodItem;
 import com.mfranklin.kitchnik.R;
+import com.mfranklin.kitchnik.data_model.FoodType;
+import com.mfranklin.kitchnik.data_model.FridgeAppDbHelper;
 import com.mfranklin.kitchnik.data_model.Reminder;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -51,6 +56,7 @@ public class StashAdapter extends FoodItemAdapter {
     private int expandedPosition = -1;
     private View expandedView = null;
     private HashMap<FoodItem, Reminder> itemToReminder = new HashMap<>(); // to cache reminders
+    private String[] categories;
 
     public StashAdapter(Context context, FoodItem[] stashItems) {
         super(context, stashItems);
@@ -61,6 +67,8 @@ public class StashAdapter extends FoodItemAdapter {
         for (FoodItem item : stashItems) {
             itemToReminder.put(item, Reminder.getFoodItemReminder(item.db, item));
         }
+
+        categories = FoodType.getAllCategories(new FridgeAppDbHelper(ctx).getReadableDatabase());
     }
 
     public int getViewTypeCount() {
@@ -109,17 +117,17 @@ public class StashAdapter extends FoodItemAdapter {
         }
 
         // set category
-        TextView category = (TextView) rowView.findViewById(R.id.stash_item_category);
-        category.setText(thisFoodItem.type.category);
+        final TextView category = (TextView) rowView.findViewById(R.id.stash_item_category);
+        category.setText(thisFoodItem.getCategory());
         // set name
         TextView name = (TextView) rowView.findViewById(R.id.stash_item_name);
-        name.setText(thisFoodItem.type.name);
+        name.setText(thisFoodItem.getName());
         // hook up delete button
         ImageButton delete = (ImageButton) rowView.findViewById(R.id.stash_item_delete_button);
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String message = "Removed " + thisFoodItem.type.name + " from " + Constants.locationToString(thisFoodItem.getLocation());
+                String message = "Removed " + thisFoodItem.getName() + " from " + Constants.locationToString(thisFoodItem.getLocation());
                 Snackbar.make(parent, message, Snackbar.LENGTH_SHORT).setAction("Undo", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -205,14 +213,15 @@ public class StashAdapter extends FoodItemAdapter {
             }
         }
         final RefreshPopupWindow detailCard = new RefreshPopupWindow(ctx);
+        Configuration configuration = ctx.getResources().getConfiguration();
         detailCard.setOutsideTouchable(true);
-        detailCard.setWidth((int) (parent.getWidth() * 0.88));
-        detailCard.setHeight((int) (parent.getHeight() * 0.70));
+        detailCard.setWidth((int) (parent.getWidth() * 0.90));
+        detailCard.setHeight((int) (configuration.screenHeightDp*ctx.getResources().getDisplayMetrics().density*0.5));
         detailCard.setFocusable(true);
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
+                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem, categories);
                 detailCard.setContentView(detailCardView);
                 detailCard.showAtLocation(v, Gravity.CENTER, 0, 0);
             }

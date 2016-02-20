@@ -17,6 +17,8 @@ import android.widget.Toast;
 import com.mfranklin.kitchnik.data_model.Constants;
 import com.mfranklin.kitchnik.data_model.FoodItem;
 import com.mfranklin.kitchnik.R;
+import com.mfranklin.kitchnik.data_model.FoodType;
+import com.mfranklin.kitchnik.data_model.FridgeAppDbHelper;
 import com.mfranklin.kitchnik.data_model.Reminder;
 
 import java.util.Calendar;
@@ -25,10 +27,15 @@ import java.util.Calendar;
  * Created by root on 12/3/15.
  */
 public class ShoppingListAdapter extends FoodItemAdapter {
+
+    private String[] categories;
+
     public ShoppingListAdapter(Context context, FoodItem[] foodItems) {
         super(context, foodItems);
         filter.addStatusFilter(Constants.STATUS_LIST);
         filter.filter();
+
+        categories = FoodType.getAllCategories(new FridgeAppDbHelper(context).getReadableDatabase());
     }
 
     @Override
@@ -42,7 +49,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         }
 
         TextView tv = (TextView) rowView.findViewById(R.id.shopping_list_item_name);
-        tv.setText(thisFoodItem.type.name);
+        tv.setText(thisFoodItem.getName());
 
         // Hook up add and delete buttons
         View addButton = rowView.findViewById(R.id.shopping_list_item_add);
@@ -58,7 +65,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
                 itemList.remove(thisFoodItem);
                 filteredItemList.remove(thisFoodItem);
                 notifyDataSetChanged();
-                final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.type.name +
+                final Toast addConfirmation = Toast.makeText(ctx, "Added " + thisFoodItem.getName() +
                         " to " + Constants.locationToString(thisFoodItem.getLocation()), Toast.LENGTH_SHORT); // will be canceled after 1.5 seconds
                 addConfirmation.show();
                 Handler handler = new Handler();
@@ -102,7 +109,7 @@ public class ShoppingListAdapter extends FoodItemAdapter {
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem);
+                View detailCardView = FoodItemAdapter.assignItemDetailCard(ctx, inflater, thisFoodItem, categories);
                 detailCard.setContentView(detailCardView);
                 detailCard.showAtLocation(v, Gravity.CENTER, 0, 0);
             }
